@@ -3,313 +3,171 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Duck Hunting Game (Mobiel)</title>
+  <title>Duck Hunting PWA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="icon" type="image/png" href="icon-192.png"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <meta name="theme-color" content="#4a90e2"/>
   <style type="text/css">
     body {
       margin: 0;
       padding: 0;
       font-family: sans-serif;
-      background-color: #a3d9ff;
+      background-color: #cceeff;
       overflow: hidden;
-      cursor: crosshair;
     }
 
-    @media (max-width: 600px) {
-      body {
-        cursor: auto; /* geen crosshair op mobiel */
-      }
-
-      .duck {
-        font-size: 30px !important;
-      }
-
-      #scoreboard, #timer, #highscore {
-        font-size: 14px !important;
-        padding: 6px;
-      }
-
-      button {
-        font-size: 14px !important;
-        padding: 8px 12px !important;
-      }
-    }
-
-    #scoreboard, #timer, #highscore {
+    #game-screen, #start-screen, #end-screen {
       position: absolute;
-      top: 10px;
-      font-size: 18px;
-      background: #ffffff;
-      opacity: 0.9;
-      padding: 10px;
-      border-radius: 10px;
-      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
     }
 
-    #scoreboard { left: 10px; }
-    #timer { left: 120px; }
-    #highscore { left: 230px; }
+    #start-screen, #end-screen {
+      display: flex;
+      background-color: #cceeff;
+    }
 
-    #bombButton, #soundToggle {
+    #crosshair {
       position: absolute;
-      top: 10px;
-      font-size: 16px;
-      padding: 10px 16px;
-      background-color: #ff4444;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      z-index: 10;
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" stroke="red" stroke-width="2" fill="none"/><line x1="20" y1="0" x2="20" y2="40" stroke="red" stroke-width="2"/><line x1="0" y1="20" x2="40" y2="20" stroke="red" stroke-width="2"/></svg>') no-repeat center center;
+      background-size: contain;
     }
 
-    #bombButton { right: 10px; }
-    #soundToggle { right: 110px; background-color: #44aa44; }
-
-    .duck {
+    #duck {
       position: absolute;
       font-size: 40px;
       cursor: pointer;
-      animation: flap 0.4s infinite alternate ease-in-out;
-      user-select: none;
     }
 
-    @keyframes flap {
-      from { transform: translateY(0); }
-      to { transform: translateY(-12px); }
-    }
-
-    #gameover, #startscreen {
+    #scoreboard {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 90%;
-      max-width: 340px;
-      transform: translate(-50%, -50%);
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      font-size: 20px;
-      display: none;
-      z-index: 20;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: rgba(255,255,255,0.7);
+      padding: 8px 12px;
+      border-radius: 8px;
     }
 
-    .button {
-      margin-top: 10px;
+    button {
+      padding: 12px 24px;
       font-size: 18px;
-      padding: 10px 20px;
-    }
-
-    select {
-      margin-top: 10px;
-      font-size: 16px;
-      padding: 6px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      font-size: 16px;
-      text-align: left;
-    }
-
-    li span {
-      float: right;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div id="scoreboard">Score: 0</div>
-  <div id="timer">Tijd: 30</div>
-  <div id="highscore">Highscore: 0</div>
-  <button id="bombButton" onclick="useBomb()">💣 Bomb</button>
-  <button id="soundToggle" onclick="toggleSound()">🔊 Aan</button>
-
-  <div id="startscreen">
-    <p><strong>Duck Hunting Game</strong></p>
-    <p>Klik of tik op de eenden voor punten!</p>
-    <label>Moeilijkheid:</label><br/>
-    <select id="difficulty">
-      <option value="easy">Beginner</option>
-      <option value="normal" selected="selected">Normaal</option>
-      <option value="hard">Expert</option>
-    </select><br/>
-    <button class="button" onclick="startGame()">Start</button>
+  <div id="start-screen">
+    <h1>🦆 Duck Hunting</h1>
+    <button onclick="startGame()">Start Game</button>
   </div>
 
-  <div id="gameover">
-    <div id="finalscore">Je score: 0</div>
-    <div><strong>Top 5:</strong></div>
-    <ul id="leaderboard"></ul>
-    <button class="button" onclick="restartGame()">Opnieuw spelen</button>
+  <div id="game-screen">
+    <div id="scoreboard">Score: 0</div>
+    <div id="duck">🦆</div>
+    <div id="crosshair"></div>
   </div>
 
-  <!-- Geluiden -->
-  <audio id="shot" preload="auto">
-    <source src="https://www.soundjay.com/mechanical/switch-click-10.mp3" type="audio/mpeg"/>
-  </audio>
-  <audio id="boom" preload="auto">
-    <source src="https://www.soundjay.com/explosion/explosion-01.mp3" type="audio/mpeg"/>
-  </audio>
+  <div id="end-screen">
+    <h1>Game Over</h1>
+    <p id="final-score"></p>
+    <h2>🏆 Ranglijst</h2>
+    <ol id="leaderboard"></ol>
+    <button onclick="startGame()">Opnieuw spelen</button>
+  </div>
 
   <script type="text/javascript">
-    // <![CDATA[
-    var score = 0, timeLeft = 30, gameRunning = false;
-    var duckSpeed = 2000, ducks = [], duckMoveInterval, timerInterval;
-    var duckID = 0, soundOn = true, bombAvailable = true;
-    var leaderboard = [];
+    var score = 0;
+    var timeLimit = 30;
+    var duck = document.getElementById("duck");
+    var crosshair = document.getElementById("crosshair");
+    var scoreboard = document.getElementById("scoreboard");
+    var startScreen = document.getElementById("start-screen");
+    var gameScreen = document.getElementById("game-screen");
+    var endScreen = document.getElementById("end-screen");
+    var finalScore = document.getElementById("final-score");
+    var leaderboard = document.getElementById("leaderboard");
+    var bombUsed = false;
+    var gameTimer;
 
-    function get(id) { return document.getElementById(id); }
+    function moveDuck() {
+      var maxWidth = window.innerWidth - 50;
+      var maxHeight = window.innerHeight - 50;
+      duck.style.left = Math.floor(Math.random() * maxWidth) + "px";
+      duck.style.top = Math.floor(Math.random() * maxHeight) + "px";
+    }
+
+    function updateLeaderboard() {
+      var scores = JSON.parse(localStorage.getItem("duckhunt-scores") || "[]");
+      scores.push(score);
+      scores.sort(function(a, b) { return b - a; });
+      scores = scores.slice(0, 5); // top 5
+      localStorage.setItem("duckhunt-scores", JSON.stringify(scores));
+
+      leaderboard.innerHTML = "";
+      for (var i = 0; i < scores.length; i++) {
+        var li = document.createElement("li");
+        li.textContent = scores[i];
+        leaderboard.appendChild(li);
+      }
+    }
 
     function startGame() {
-      get('startscreen').style.display = 'none';
-      document.body.style.cursor = 'crosshair';
-      var level = get('difficulty').value;
-      bombAvailable = true;
-      get('bombButton').style.display = 'inline';
-
-      if (level === 'easy') { duckSpeed = 2500; timeLeft = 40; }
-      else if (level === 'normal') { duckSpeed = 2000; timeLeft = 30; }
-      else if (level === 'hard') { duckSpeed = 1300; timeLeft = 25; bombAvailable = false; get('bombButton').style.display = 'none'; }
-
-      resetGame();
-      gameRunning = true;
-      moveAllDucks();
-      timerInterval = setInterval(updateTimer, 1000);
-      duckMoveInterval = setInterval(moveAllDucks, duckSpeed);
-    }
-
-    function resetGame() {
-      score = 0; duckID = 0;
-      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
-      ducks = [];
-      get('scoreboard').textContent = 'Score: 0';
-      get('timer').textContent = 'Tijd: ' + timeLeft;
-      addDuck();
-      updateHighscore();
-    }
-
-    function updateScore() {
-      get('scoreboard').textContent = 'Score: ' + score;
-    }
-
-    function updateHighscore() {
-      var stored = localStorage.getItem('duckLeaderboard');
-      if (stored) leaderboard = JSON.parse(stored);
-      var max = Math.max(0, ...leaderboard.map(function(e){return e.score;}));
-      get('highscore').textContent = 'Highscore: ' + max;
-    }
-
-    function updateTimer() {
-      if (!gameRunning) return;
-      timeLeft--;
-      get('timer').textContent = 'Tijd: ' + timeLeft;
-      if (timeLeft <= 0) endGame();
+      score = 0;
+      bombUsed = false;
+      scoreboard.textContent = "Score: 0";
+      startScreen.style.display = "none";
+      endScreen.style.display = "none";
+      gameScreen.style.display = "block";
+      moveDuck();
+      gameTimer = setTimeout(endGame, timeLimit * 1000);
     }
 
     function endGame() {
-      gameRunning = false;
-      clearInterval(timerInterval);
-      clearInterval(duckMoveInterval);
-      get('finalscore').textContent = 'Je score: ' + score;
-      saveScore(score);
-      showLeaderboard();
-      get('gameover').style.display = 'block';
+      clearTimeout(gameTimer);
+      finalScore.textContent = "Je eindscore: " + score;
+      updateLeaderboard();
+      gameScreen.style.display = "none";
+      endScreen.style.display = "flex";
     }
 
-    function restartGame() {
-      get('gameover').style.display = 'none';
-      startGame();
-    }
+    duck.onclick = function () {
+      score++;
+      scoreboard.textContent = "Score: " + score;
+      moveDuck();
+    };
 
-    function addDuck() {
-      var duck = document.createElement('div');
-      duck.className = 'duck';
-      duck.appendChild(document.createTextNode('🦆'));
-      duck.setAttribute('id', 'duck' + duckID);
-      positionDuck(duck);
-      duck.onclick = function (e) {
-        if (!gameRunning) return false;
-        score += 1;
-        updateScore();
-        if (soundOn) get('shot').play();
-        positionDuck(duck);
-        adjustDifficulty();
-        e.stopPropagation();
-        return false;
-      };
-      duck.ontouchstart = duck.onclick;
-      document.body.appendChild(duck);
-      ducks.push(duck);
-      duckID++;
-    }
+    document.onclick = function (e) {
+      crosshair.style.left = (e.clientX - 20) + "px";
+      crosshair.style.top = (e.clientY - 20) + "px";
+    };
 
-    function positionDuck(duck) {
-      var w = window.innerWidth;
-      var h = window.innerHeight;
-      duck.style.left = Math.floor(Math.random() * (w - 60)) + 'px';
-      duck.style.top = Math.floor(Math.random() * (h - 60)) + 'px';
-    }
-
-    function moveAllDucks() {
-      if (!gameRunning) return;
-      ducks.forEach(function(duck){ positionDuck(duck); });
-    }
-
-    function adjustDifficulty() {
-      if (score % 5 === 0 && duckSpeed > 700) {
-        duckSpeed -= 150;
-        clearInterval(duckMoveInterval);
-        duckMoveInterval = setInterval(moveAllDucks, duckSpeed);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === " " && !bombUsed) {
+        // bom activeert
+        score += 5;
+        scoreboard.textContent = "Score: " + score;
+        bombUsed = true;
+        moveDuck();
+        alert("💥 Bom gebruikt! +5 punten");
       }
-      if (score % 7 === 0 && ducks.length < 10) {
-        addDuck();
-      }
-    }
+    });
 
-    function useBomb() {
-      if (!gameRunning || !bombAvailable) return;
-      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
-      ducks = [];
-      score += 3;
-      updateScore();
-      if (soundOn) get('boom').play();
-      addDuck();
-      bombAvailable = false;
-      get('bombButton').style.display = 'none';
-    }
-
-    function toggleSound() {
-      soundOn = !soundOn;
-      get('soundToggle').textContent = soundOn ? '🔊 Aan' : '🔇 Uit';
-    }
-
-    function saveScore(s) {
-      leaderboard.push({ score: s, time: new Date().toLocaleString() });
-      leaderboard.sort(function(a, b){ return b.score - a.score; });
-      leaderboard = leaderboard.slice(0, 5);
-      localStorage.setItem('duckLeaderboard', JSON.stringify(leaderboard));
-    }
-
-    function showLeaderboard() {
-      var ul = get('leaderboard');
-      ul.innerHTML = '';
-      leaderboard.forEach(function(entry){
-        var li = document.createElement('li');
-        li.textContent = entry.time + ': ';
-        var span = document.createElement('span');
-        span.textContent = entry.score;
-        li.appendChild(span);
-        ul.appendChild(li);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').then(function(reg) {
+        console.log("Service Worker geregistreerd!");
       });
     }
-
-    window.onload = function () {
-      updateHighscore();
-      get('startscreen').style.display = 'block';
-    };
-    // ]]>
   </script>
 </body>
 </html>
