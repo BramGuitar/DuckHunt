@@ -4,11 +4,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <title>Duck Hunting PWA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="icon" type="image/png" href="icon-192.png"/>
-  <link rel="apple-touch-icon" href="icon-192.png"/>
-  <meta name="theme-color" content="#4a90e2"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#4a90e2" />
   <style type="text/css">
     body {
       margin: 0;
@@ -39,7 +39,7 @@
       width: 40px;
       height: 40px;
       pointer-events: none;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" stroke="red" stroke-width="2" fill="none"/><line x1="20" y1="0" x2="20" y2="40" stroke="red" stroke-width="2"/><line x1="0" y1="20" x2="40" y2="20" stroke="red" stroke-width="2"/></svg>') no-repeat center center;
+      background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Ccircle cx="20" cy="20" r="18" stroke="red" stroke-width="2" fill="none"/%3E%3Cline x1="20" y1="0" x2="20" y2="40" stroke="red" stroke-width="2"/%3E%3Cline x1="0" y1="20" x2="40" y2="20" stroke="red" stroke-width="2"/%3E%3C/svg%3E') no-repeat center center;
       background-size: contain;
     }
 
@@ -63,6 +63,7 @@
       padding: 12px 24px;
       font-size: 18px;
       margin-top: 20px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -111,7 +112,7 @@
       var scores = JSON.parse(localStorage.getItem("duckhunt-scores") || "[]");
       scores.push(score);
       scores.sort(function(a, b) { return b - a; });
-      scores = scores.slice(0, 5); // top 5
+      scores = scores.slice(0, 5);
       localStorage.setItem("duckhunt-scores", JSON.stringify(scores));
 
       leaderboard.innerHTML = "";
@@ -154,7 +155,6 @@
 
     document.addEventListener("keydown", function (e) {
       if (e.key === " " && !bombUsed) {
-        // bom activeert
         score += 5;
         scoreboard.textContent = "Score: " + score;
         bombUsed = true;
@@ -164,7 +164,7 @@
     });
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(function(reg) {
+      navigator.serviceWorker.register('service-worker.js').then(function (reg) {
         console.log("Service Worker geregistreerd!");
       });
     }
