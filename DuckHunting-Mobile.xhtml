@@ -1,18 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="nl">
 <head>
-  <title>Duck Hunting PWA</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duck Hunting PWA</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="theme-color" content="#4a90e2" />
-  <style type="text/css">
+  <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: sans-serif;
       background-color: #cceeff;
       overflow: hidden;
@@ -49,15 +47,17 @@
       cursor: pointer;
     }
 
-    #scoreboard {
+    #scoreboard, #timer {
       position: absolute;
       top: 10px;
-      left: 10px;
-      font-size: 24px;
+      font-size: 20px;
       background: rgba(255,255,255,0.7);
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
     }
+
+    #scoreboard { left: 10px; }
+    #timer { right: 10px; }
 
     #bomb-message {
       position: absolute;
@@ -87,7 +87,8 @@
 
   <div id="game-screen">
     <div id="scoreboard">Score: 0</div>
-    <div id="bomb-message">Bom gebruikt! +5 punten</div>
+    <div id="timer">Tijd: 30</div>
+    <div id="bomb-message">💣 Bom gebruikt! +5 punten</div>
     <div id="duck">🦆</div>
     <div id="crosshair"></div>
   </div>
@@ -100,40 +101,42 @@
     <button onclick="startGame()">Opnieuw spelen</button>
   </div>
 
-  <script type="text/javascript">
-    //<![CDATA[
-    var score = 0;
-    var timeLimit = 30;
-    var duck = document.getElementById("duck");
-    var crosshair = document.getElementById("crosshair");
-    var scoreboard = document.getElementById("scoreboard");
-    var bombMsg = document.getElementById("bomb-message");
-    var startScreen = document.getElementById("start-screen");
-    var gameScreen = document.getElementById("game-screen");
-    var endScreen = document.getElementById("end-screen");
-    var finalScore = document.getElementById("final-score");
-    var leaderboard = document.getElementById("leaderboard");
-    var bombUsed = false;
-    var gameTimer;
+  <script>
+    let score = 0;
+    const timeLimit = 30;
+    let timeLeft = timeLimit;
+    let bombUsed = false;
+    let gameTimer, timerInterval;
+
+    const duck = document.getElementById("duck");
+    const crosshair = document.getElementById("crosshair");
+    const scoreboard = document.getElementById("scoreboard");
+    const bombMsg = document.getElementById("bomb-message");
+    const timerDisplay = document.getElementById("timer");
+    const startScreen = document.getElementById("start-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const endScreen = document.getElementById("end-screen");
+    const finalScore = document.getElementById("final-score");
+    const leaderboard = document.getElementById("leaderboard");
 
     function moveDuck() {
-      var maxWidth = window.innerWidth - 50;
-      var maxHeight = window.innerHeight - 50;
+      const maxWidth = window.innerWidth - 50;
+      const maxHeight = window.innerHeight - 50;
       duck.style.left = Math.floor(Math.random() * maxWidth) + "px";
       duck.style.top = Math.floor(Math.random() * maxHeight) + "px";
     }
 
     function updateLeaderboard() {
-      var scores = JSON.parse(localStorage.getItem("duckhunt-scores") || "[]");
+      let scores = JSON.parse(localStorage.getItem("duckhunt-scores") || "[]");
       scores.push(score);
-      scores.sort(function(a, b) { return b - a; });
+      scores.sort((a, b) => b - a);
       scores = scores.slice(0, 5);
       localStorage.setItem("duckhunt-scores", JSON.stringify(scores));
 
       leaderboard.innerHTML = "";
-      for (var i = 0; i < scores.length; i++) {
-        var li = document.createElement("li");
-        li.textContent = scores[i];
+      for (let s of scores) {
+        const li = document.createElement("li");
+        li.textContent = s;
         leaderboard.appendChild(li);
       }
     }
@@ -141,53 +144,64 @@
     function startGame() {
       score = 0;
       bombUsed = false;
+      timeLeft = timeLimit;
+
       scoreboard.textContent = "Score: 0";
+      timerDisplay.textContent = "Tijd: " + timeLeft;
       bombMsg.style.display = "none";
+
       startScreen.style.display = "none";
       endScreen.style.display = "none";
       gameScreen.style.display = "block";
+
       moveDuck();
+
       gameTimer = setTimeout(endGame, timeLimit * 1000);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = "Tijd: " + timeLeft;
+        if (timeLeft <= 0) clearInterval(timerInterval);
+      }, 1000);
     }
 
     function endGame() {
       clearTimeout(gameTimer);
+      clearInterval(timerInterval);
       finalScore.textContent = "Je eindscore: " + score;
       updateLeaderboard();
       gameScreen.style.display = "none";
       endScreen.style.display = "flex";
     }
 
-    duck.onclick = function () {
+    duck.onclick = () => {
       score++;
       scoreboard.textContent = "Score: " + score;
       moveDuck();
     };
 
-    document.onclick = function (e) {
+    document.onclick = e => {
       crosshair.style.left = (e.clientX - 20) + "px";
       crosshair.style.top = (e.clientY - 20) + "px";
     };
 
-    document.addEventListener("keydown", function (e) {
+    document.addEventListener("keydown", e => {
       if (e.key === " " && !bombUsed) {
         score += 5;
-        scoreboard.textContent = "Score: " + score;
         bombUsed = true;
+        scoreboard.textContent = "Score: " + score;
         moveDuck();
         bombMsg.style.display = "block";
-        setTimeout(function () {
+        setTimeout(() => {
           bombMsg.style.display = "none";
         }, 3000);
       }
     });
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(function (reg) {
-        console.log("Service Worker geregistreerd!");
+      navigator.serviceWorker.register('service-worker.js').then(() => {
+        console.log("✅ Service Worker actief");
       });
     }
-    //]]>
   </script>
 </body>
 </html>
