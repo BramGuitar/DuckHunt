@@ -59,6 +59,18 @@
       border-radius: 8px;
     }
 
+    #bomb-message {
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      font-size: 18px;
+      background: rgba(255,0,0,0.7);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: none;
+    }
+
     button {
       padding: 12px 24px;
       font-size: 18px;
@@ -75,6 +87,7 @@
 
   <div id="game-screen">
     <div id="scoreboard">Score: 0</div>
+    <div id="bomb-message">Bom gebruikt! +5 punten</div>
     <div id="duck">🦆</div>
     <div id="crosshair"></div>
   </div>
@@ -88,11 +101,13 @@
   </div>
 
   <script type="text/javascript">
+    //<![CDATA[
     var score = 0;
     var timeLimit = 30;
     var duck = document.getElementById("duck");
     var crosshair = document.getElementById("crosshair");
     var scoreboard = document.getElementById("scoreboard");
+    var bombMsg = document.getElementById("bomb-message");
     var startScreen = document.getElementById("start-screen");
     var gameScreen = document.getElementById("game-screen");
     var endScreen = document.getElementById("end-screen");
@@ -127,6 +142,7 @@
       score = 0;
       bombUsed = false;
       scoreboard.textContent = "Score: 0";
+      bombMsg.style.display = "none";
       startScreen.style.display = "none";
       endScreen.style.display = "none";
       gameScreen.style.display = "block";
@@ -159,7 +175,10 @@
         scoreboard.textContent = "Score: " + score;
         bombUsed = true;
         moveDuck();
-        window.alert("Bom gebruikt! +5 punten");
+        bombMsg.style.display = "block";
+        setTimeout(function () {
+          bombMsg.style.display = "none";
+        }, 3000);
       }
     });
 
@@ -168,6 +187,7 @@
         console.log("Service Worker geregistreerd!");
       });
     }
+    //]]>
   </script>
 </body>
 </html>
