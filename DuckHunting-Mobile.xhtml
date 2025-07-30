@@ -189,19 +189,28 @@
     function addDuck() {
       var duck = document.createElement('div');
       duck.className = 'duck';
-      duck.appendChild(document.createTextNode('🦆'));
+      const types = ['🦆', '🦆', '🦆', '⏱️']; // 25% kans op ⏱️
+      const duckType = types[Math.floor(Math.random() * types.length)];
+      duck.appendChild(document.createTextNode(duckType));
       duck.setAttribute('id', 'duck' + duckID);
       positionDuck(duck);
       duck.onclick = function (e) {
-        if (!gameRunning) return false;
-        score += 1;
-        updateScore();
-        if (soundOn) get('shot').play();
-        positionDuck(duck);
-        adjustDifficulty();
-        e.stopPropagation();
-        return false;
-      };
+  if (!gameRunning) return false;
+
+  if (duck.textContent === '⏱️') {
+    timeLeft += 3; // Tijdverlenging
+    get('timer').textContent = 'Tijd: ' + timeLeft;
+  } else {
+    score += 1;
+    updateScore();
+    if (soundOn) get('shot').play();
+  }
+
+  positionDuck(duck);
+  adjustDifficulty();
+  e.stopPropagation();
+  return false;
+};
       duck.ontouchstart = duck.onclick;
       document.body.appendChild(duck);
       ducks.push(duck);
