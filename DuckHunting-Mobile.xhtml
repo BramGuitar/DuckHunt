@@ -96,6 +96,8 @@ var timeDuckCooldown = 15000; // 15 seconden
   <div id="startscreen">
     <p><strong>Duck Hunting Game</strong></p>
     <p>Klik of tik op de eenden voor punten!</p>
+<label>Naam:</label><br/>
+<input type="text" id="playerName" placeholder="Jouw naam" /><br/><br/>
     <label>Moeilijkheid:</label><br/>
     <select id="difficulty">
       <option value="easy">Beginner</option>
@@ -264,7 +266,9 @@ var timeDuckCooldown = 15000; // 15 seconden
     }
 
     function saveScore(s) {
-      leaderboard.push({ score: s, time: new Date().toLocaleString() });
+function saveScore(s) {
+  var name = get('playerName').value || "Anoniem";
+  leaderboard.push({ name: name, score: s, time: new Date().toLocaleString() });
       leaderboard.sort(function(a, b){ return b.score - a.score; });
       leaderboard = leaderboard.slice(0, 5);
       localStorage.setItem('duckLeaderboard', JSON.stringify(leaderboard));
