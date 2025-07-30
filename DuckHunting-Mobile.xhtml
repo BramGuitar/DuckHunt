@@ -1,3 +1,6 @@
+var lastTimeDuckHit = 0;
+var timeDuckCooldown = 15000; // 15 seconden
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -189,18 +192,21 @@
     function addDuck() {
       var duck = document.createElement('div');
       duck.className = 'duck';
-      const types = ['🦆', '🦆', '🦆', '⏱️']; // 25% kans op ⏱️
-      const duckType = types[Math.floor(Math.random() * types.length)];
+      let duckType = '🦆';
+      if (Math.random() < 0.25 && Date.now() - lastTimeDuckHit > timeDuckCooldown) {
+        duckType = '⏱️';
+    }
       duck.appendChild(document.createTextNode(duckType));
       duck.setAttribute('id', 'duck' + duckID);
       positionDuck(duck);
       duck.onclick = function (e) {
   if (!gameRunning) return false;
 
-  if (duck.textContent === '⏱️') {
-    timeLeft += 3; // Tijdverlenging
-    get('timer').textContent = 'Tijd: ' + timeLeft;
-  } else {
+ if (duck.textContent === '⏱️') {
+  timeLeft += 3;
+  get('timer').textContent = 'Tijd: ' + timeLeft;
+  lastTimeDuckHit = Date.now(); // Zet de timer terug
+} else {
     score += 1;
     updateScore();
     if (soundOn) get('shot').play();
