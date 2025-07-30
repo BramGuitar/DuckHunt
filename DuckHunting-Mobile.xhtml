@@ -281,7 +281,14 @@ function saveScore(s) {
         var li = document.createElement('li');
         li.textContent = entry.time + ': ';
         var span = document.createElement('span');
-        span.textContent = entry.score;
+       leaderboard.forEach(function(entry){
+  var li = document.createElement('li');
+  li.textContent = entry.name + ' (' + entry.time + '): ';
+  var span = document.createElement('span');
+  span.textContent = entry.score;
+  li.appendChild(span);
+  ul.appendChild(li);
+});
         li.appendChild(span);
         ul.appendChild(li);
       });
