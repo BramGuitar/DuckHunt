@@ -1,6 +1,3 @@
-var lastTimeDuckHit = 0;
-var timeDuckCooldown = 15000; // 15 seconden
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -10,7 +7,6 @@ var timeDuckCooldown = 15000; // 15 seconden
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="manifest" href="manifest.json"/>
   <style type="text/css">
-    /* Zelfde styling als mobielvriendelijke versie */
     body {
       margin: 0; padding: 0;
       font-family: sans-serif;
@@ -96,8 +92,8 @@ var timeDuckCooldown = 15000; // 15 seconden
   <div id="startscreen">
     <p><strong>Duck Hunting Game</strong></p>
     <p>Klik of tik op de eenden voor punten!</p>
-<label>Naam:</label><br/>
-<input type="text" id="playerName" placeholder="Jouw naam" /><br/><br/>
+    <label>Naam:</label><br/>
+    <input type="text" id="playerName" placeholder="Jouw naam" /><br/><br/>
     <label>Moeilijkheid:</label><br/>
     <select id="difficulty">
       <option value="easy">Beginner</option>
@@ -122,11 +118,12 @@ var timeDuckCooldown = 15000; // 15 seconden
   </audio>
 
   <script type="text/javascript">
-    // <![CDATA[
     var score = 0, timeLeft = 30, gameRunning = false;
     var duckSpeed = 2000, ducks = [], duckMoveInterval, timerInterval;
     var duckID = 0, soundOn = true, bombAvailable = true;
     var leaderboard = [];
+    var lastTimeDuckHit = 0;
+    var timeDuckCooldown = 15000;
 
     function get(id) { return document.getElementById(id); }
 
@@ -150,7 +147,7 @@ var timeDuckCooldown = 15000; // 15 seconden
 
     function resetGame() {
       score = 0; duckID = 0;
-      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
+      ducks.forEach(d => d.parentNode && d.parentNode.removeChild(d));
       ducks = [];
       get('scoreboard').textContent = 'Score: 0';
       get('timer').textContent = 'Tijd: ' + timeLeft;
@@ -165,7 +162,7 @@ var timeDuckCooldown = 15000; // 15 seconden
     function updateHighscore() {
       var stored = localStorage.getItem('duckLeaderboard');
       if (stored) leaderboard = JSON.parse(stored);
-      var max = Math.max(0, ...leaderboard.map(function(e){return e.score;}));
+      var max = Math.max(0, ...leaderboard.map(e => e.score));
       get('highscore').textContent = 'Highscore: ' + max;
     }
 
@@ -195,30 +192,33 @@ var timeDuckCooldown = 15000; // 15 seconden
       var duck = document.createElement('div');
       duck.className = 'duck';
       let duckType = '🦆';
-      if (Math.random() < 0.25 && Date.now() - lastTimeDuckHit > timeDuckCooldown) {
+      var now = Date.now();
+      var hasClockDuck = ducks.some(d => d.textContent === '⏱️');
+      if (!hasClockDuck && now - lastTimeDuckHit > timeDuckCooldown) {
         duckType = '⏱️';
-    }
-      duck.appendChild(document.createTextNode(duckType));
+      }
+      duck.textContent = duckType;
       duck.setAttribute('id', 'duck' + duckID);
       positionDuck(duck);
+
       duck.onclick = function (e) {
-  if (!gameRunning) return false;
+        if (!gameRunning) return false;
+        if (duck.textContent === '⏱️') {
+          timeLeft += 3;
+          lastTimeDuckHit = Date.now();
+          get('timer').textContent = 'Tijd: ' + timeLeft;
+          duck.remove();
+        } else {
+          score++;
+          updateScore();
+          if (soundOn) get('shot').play();
+        }
+        positionDuck(duck);
+        adjustDifficulty();
+        e.stopPropagation();
+        return false;
+      };
 
- if (duck.textContent === '⏱️') {
-  timeLeft += 3;
-  get('timer').textContent = 'Tijd: ' + timeLeft;
-  lastTimeDuckHit = Date.now(); // Zet de timer terug
-} else {
-    score += 1;
-    updateScore();
-    if (soundOn) get('shot').play();
-  }
-
-  positionDuck(duck);
-  adjustDifficulty();
-  e.stopPropagation();
-  return false;
-};
       duck.ontouchstart = duck.onclick;
       document.body.appendChild(duck);
       ducks.push(duck);
@@ -234,7 +234,7 @@ var timeDuckCooldown = 15000; // 15 seconden
 
     function moveAllDucks() {
       if (!gameRunning) return;
-      ducks.forEach(function(duck){ positionDuck(duck); });
+      ducks.forEach(positionDuck);
     }
 
     function adjustDifficulty() {
@@ -250,7 +250,7 @@ var timeDuckCooldown = 15000; // 15 seconden
 
     function useBomb() {
       if (!gameRunning || !bombAvailable) return;
-      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
+      ducks.forEach(d => d.parentNode && d.parentNode.removeChild(d));
       ducks = [];
       score += 3;
       updateScore();
@@ -266,10 +266,9 @@ var timeDuckCooldown = 15000; // 15 seconden
     }
 
     function saveScore(s) {
-function saveScore(s) {
-  var name = get('playerName').value || "Anoniem";
-  leaderboard.push({ name: name, score: s, time: new Date().toLocaleString() });
-      leaderboard.sort(function(a, b){ return b.score - a.score; });
+      var name = get('playerName').value || "Anoniem";
+      leaderboard.push({ name: name, score: s, time: new Date().toLocaleString() });
+      leaderboard.sort((a, b) => b.score - a.score);
       leaderboard = leaderboard.slice(0, 5);
       localStorage.setItem('duckLeaderboard', JSON.stringify(leaderboard));
     }
@@ -277,29 +276,21 @@ function saveScore(s) {
     function showLeaderboard() {
       var ul = get('leaderboard');
       ul.innerHTML = '';
-      leaderboard.forEach(function(entry){
+      leaderboard.forEach(entry => {
         var li = document.createElement('li');
-        li.textContent = entry.time + ': ';
+        li.textContent = entry.name + ' (' + entry.time + '): ';
         var span = document.createElement('span');
-       leaderboard.forEach(function(entry){
-  var li = document.createElement('li');
-  li.textContent = entry.name + ' (' + entry.time + '): ';
-  var span = document.createElement('span');
-  span.textContent = entry.score;
-  li.appendChild(span);
-  ul.appendChild(li);
-});
+        span.textContent = entry.score;
         li.appendChild(span);
         ul.appendChild(li);
       });
     }
 
-    // Service worker registratie
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-          console.log('ServiceWorker geregistreerd met scope: ', registration.scope);
-        }, function(err) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').then(reg => {
+          console.log('ServiceWorker geregistreerd met scope: ', reg.scope);
+        }, err => {
           console.log('ServiceWorker registratie mislukt: ', err);
         });
       });
@@ -309,7 +300,6 @@ function saveScore(s) {
       updateHighscore();
       get('startscreen').style.display = 'block';
     };
-    // ]]>
   </script>
 </body>
 </html>
