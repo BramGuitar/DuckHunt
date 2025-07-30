@@ -127,6 +127,14 @@
 
     function get(id) { return document.getElementById(id); }
 
+    function escapeHTML(str) {
+      return str.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+    }
+
     function startGame() {
       get('startscreen').style.display = 'none';
       document.body.style.cursor = 'crosshair';
@@ -147,7 +155,7 @@
 
     function resetGame() {
       score = 0; duckID = 0;
-      ducks.forEach(d => d.parentNode && d.parentNode.removeChild(d));
+      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
       ducks = [];
       get('scoreboard').textContent = 'Score: 0';
       get('timer').textContent = 'Tijd: ' + timeLeft;
@@ -162,7 +170,7 @@
     function updateHighscore() {
       var stored = localStorage.getItem('duckLeaderboard');
       if (stored) leaderboard = JSON.parse(stored);
-      var max = Math.max(0, ...leaderboard.map(e => e.score));
+      var max = Math.max(0, ...leaderboard.map(function(e){return e.score;}));
       get('highscore').textContent = 'Highscore: ' + max;
     }
 
@@ -192,33 +200,30 @@
       var duck = document.createElement('div');
       duck.className = 'duck';
       let duckType = '🦆';
-      var now = Date.now();
-      var hasClockDuck = ducks.some(d => d.textContent === '⏱️');
-      if (!hasClockDuck && now - lastTimeDuckHit > timeDuckCooldown) {
+      if (Math.random() < 0.25 && Date.now() - lastTimeDuckHit > timeDuckCooldown) {
         duckType = '⏱️';
       }
-      duck.textContent = duckType;
+      duck.appendChild(document.createTextNode(duckType));
       duck.setAttribute('id', 'duck' + duckID);
       positionDuck(duck);
-
       duck.onclick = function (e) {
         if (!gameRunning) return false;
+
         if (duck.textContent === '⏱️') {
           timeLeft += 3;
-          lastTimeDuckHit = Date.now();
           get('timer').textContent = 'Tijd: ' + timeLeft;
-          duck.remove();
+          lastTimeDuckHit = Date.now();
         } else {
-          score++;
+          score += 1;
           updateScore();
           if (soundOn) get('shot').play();
         }
+
         positionDuck(duck);
         adjustDifficulty();
         e.stopPropagation();
         return false;
       };
-
       duck.ontouchstart = duck.onclick;
       document.body.appendChild(duck);
       ducks.push(duck);
@@ -234,7 +239,7 @@
 
     function moveAllDucks() {
       if (!gameRunning) return;
-      ducks.forEach(positionDuck);
+      ducks.forEach(function(duck){ positionDuck(duck); });
     }
 
     function adjustDifficulty() {
@@ -250,7 +255,7 @@
 
     function useBomb() {
       if (!gameRunning || !bombAvailable) return;
-      ducks.forEach(d => d.parentNode && d.parentNode.removeChild(d));
+      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
       ducks = [];
       score += 3;
       updateScore();
@@ -268,7 +273,7 @@
     function saveScore(s) {
       var name = get('playerName').value || "Anoniem";
       leaderboard.push({ name: name, score: s, time: new Date().toLocaleString() });
-      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard.sort(function(a, b){ return b.score - a.score; });
       leaderboard = leaderboard.slice(0, 5);
       localStorage.setItem('duckLeaderboard', JSON.stringify(leaderboard));
     }
@@ -276,21 +281,18 @@
     function showLeaderboard() {
       var ul = get('leaderboard');
       ul.innerHTML = '';
-      leaderboard.forEach(entry => {
+      leaderboard.forEach(function(entry){
         var li = document.createElement('li');
-        li.textContent = entry.name + ' (' + entry.time + '): ';
-        var span = document.createElement('span');
-        span.textContent = entry.score;
-        li.appendChild(span);
+        li.innerHTML = escapeHTML(entry.name + ' (' + entry.time + '): ') + '<span>' + entry.score + '</span>';
         ul.appendChild(li);
       });
     }
 
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').then(reg => {
-          console.log('ServiceWorker geregistreerd met scope: ', reg.scope);
-        }, err => {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+          console.log('ServiceWorker geregistreerd met scope: ', registration.scope);
+        }, function(err) {
           console.log('ServiceWorker registratie mislukt: ', err);
         });
       });
