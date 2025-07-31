@@ -66,7 +66,7 @@
       font-size: 18px;
       padding: 10px 20px;
     }
-    select {
+    select, input {
       margin-top: 10px;
       font-size: 16px;
       padding: 6px;
@@ -93,7 +93,7 @@
     <p><strong>Duck Hunting Game</strong></p>
     <p>Klik of tik op de eenden voor punten!</p>
     <label>Naam:</label><br/>
-    <input type="text" id="playerName" placeholder="Jouw naam" /><br/><br/>
+    <input type="text" id="playerName" placeholder="Jouw naam"/><br/>
     <label>Moeilijkheid:</label><br/>
     <select id="difficulty">
       <option value="easy">Beginner</option>
@@ -110,32 +110,20 @@
     <button class="button" onclick="restartGame()">Opnieuw spelen</button>
   </div>
 
-  <audio id="shot" preload="auto">
-    <source src="https://www.soundjay.com/mechanical/switch-click-10.mp3" type="audio/mpeg"/>
-  </audio>
-  <audio id="boom" preload="auto">
-    <source src="https://www.soundjay.com/explosion/explosion-01.mp3" type="audio/mpeg"/>
-  </audio>
-
   <script type="text/javascript">
     var score = 0, timeLeft = 30, gameRunning = false;
     var duckSpeed = 2000, ducks = [], duckMoveInterval, timerInterval;
     var duckID = 0, soundOn = true, bombAvailable = true;
-    var leaderboard = [];
-    var lastTimeDuckHit = 0;
-    var timeDuckCooldown = 15000;
+    var leaderboard = [], lastTimeDuckHit = 0, timeDuckCooldown = 15000;
 
     function get(id) { return document.getElementById(id); }
 
-    function escapeHTML(str) {
-      return str.replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-    }
-
     function startGame() {
+      var player = get('playerName').value.trim();
+      if (!player) {
+        alert('Vul je naam in.');
+        return;
+      }
       get('startscreen').style.display = 'none';
       document.body.style.cursor = 'crosshair';
       var level = get('difficulty').value;
@@ -203,12 +191,11 @@
       if (Math.random() < 0.25 && Date.now() - lastTimeDuckHit > timeDuckCooldown) {
         duckType = '⏱️';
       }
-      duck.appendChild(document.createTextNode(duckType));
+      duck.textContent = duckType;
       duck.setAttribute('id', 'duck' + duckID);
       positionDuck(duck);
       duck.onclick = function (e) {
         if (!gameRunning) return false;
-
         if (duck.textContent === '⏱️') {
           timeLeft += 3;
           get('timer').textContent = 'Tijd: ' + timeLeft;
@@ -216,9 +203,7 @@
         } else {
           score += 1;
           updateScore();
-          if (soundOn) get('shot').play();
         }
-
         positionDuck(duck);
         adjustDifficulty();
         e.stopPropagation();
@@ -259,8 +244,6 @@
       ducks = [];
       score += 3;
       updateScore();
-      if (soundOn) get('boom').play();
-      addDuck();
       bombAvailable = false;
       get('bombButton').style.display = 'none';
     }
@@ -271,7 +254,7 @@
     }
 
     function saveScore(s) {
-      var name = get('playerName').value || "Anoniem";
+      var name = get('playerName').value.trim() || 'Speler';
       leaderboard.push({ name: name, score: s, time: new Date().toLocaleString() });
       leaderboard.sort(function(a, b){ return b.score - a.score; });
       leaderboard = leaderboard.slice(0, 5);
@@ -283,7 +266,10 @@
       ul.innerHTML = '';
       leaderboard.forEach(function(entry){
         var li = document.createElement('li');
-        li.innerHTML = escapeHTML(entry.name + ' (' + entry.time + '): ') + '<span>' + entry.score + '</span>';
+        li.textContent = entry.name + ' (' + entry.time + '): ';
+        var span = document.createElement('span');
+        span.textContent = entry.score;
+        li.appendChild(span);
         ul.appendChild(li);
       });
     }
