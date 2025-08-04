@@ -111,6 +111,7 @@
   </div>
 
   <script type="text/javascript">
+// <![CDATA[
     var score = 0, timeLeft = 30, gameRunning = false;
     var duckSpeed = 2000, ducks = [], duckMoveInterval, timerInterval;
     var duckID = 0, soundOn = true, bombAvailable = true;
@@ -143,7 +144,7 @@
 
     function resetGame() {
       score = 0; duckID = 0;
-      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
+      ducks.forEach(function(d) { if (d &amp;&amp; d.parentNode) d.parentNode.removeChild(d); });
       ducks = [];
       get('scoreboard').textContent = 'Score: 0';
       get('timer').textContent = 'Tijd: ' + timeLeft;
@@ -188,7 +189,7 @@
       var duck = document.createElement('div');
       duck.className = 'duck';
       let duckType = '🦆';
-      if (Math.random() < 0.25 && Date.now() - lastTimeDuckHit > timeDuckCooldown) {
+      if (Math.random() < 0.25 &amp;&amp; Date.now() - lastTimeDuckHit > timeDuckCooldown) {
         duckType = '⏱️';
       }
       duck.textContent = duckType;
@@ -228,19 +229,19 @@
     }
 
     function adjustDifficulty() {
-      if (score % 5 === 0 && duckSpeed > 700) {
+      if (score % 5 === 0 &amp;&amp; duckSpeed > 700) {
         duckSpeed -= 150;
         clearInterval(duckMoveInterval);
         duckMoveInterval = setInterval(moveAllDucks, duckSpeed);
       }
-      if (score % 7 === 0 && ducks.length < 10) {
+      if (score % 7 === 0 &amp;&amp; ducks.length < 10) {
         addDuck();
       }
     }
 
     function useBomb() {
       if (!gameRunning || !bombAvailable) return;
-      ducks.forEach(function(d) { if (d && d.parentNode) d.parentNode.removeChild(d); });
+      ducks.forEach(function(d) { if (d &amp;&amp; d.parentNode) d.parentNode.removeChild(d); });
       ducks = [];
       score += 3;
       updateScore();
@@ -288,6 +289,7 @@
       updateHighscore();
       get('startscreen').style.display = 'block';
     };
-  </script>
+  // ]]>
+</script>
 </body>
 </html>
