@@ -1,388 +1,252 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="nl">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Duck Hunting Game (XHTML)</title>
-  <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+  <title>Duck Hunting PWA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#4a90e2" />
   <style type="text/css">
     body {
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       font-family: sans-serif;
-      background-color: #a3d9ff;
+      background-color: #cceeff;
       overflow: hidden;
-      cursor: crosshair;
-    }
-    @media (max-width: 600px) {
-      body { cursor: auto; }
-      .duck { font-size: 30px !important; }
-      #scoreboard, #timer, #highscore { font-size: 14px !important; padding: 6px; }
-      button { font-size: 14px !important; padding: 8px 12px !important; }
-    }
-    #scoreboard, #timer, #highscore {
-      position: absolute; top: 10px;
-      font-size: 18px;
-      background: #ffffff; opacity: 0.9;
-      padding: 10px; border-radius: 10px; z-index: 10;
-    }
-    #scoreboard { left: 10px; }
-    #timer { left: 120px; }
-    #highscore { left: 230px; }
-
-    #bombButton {
-      position: absolute; top: 10px; right: 10px;
-      font-size: 16px; padding: 10px 16px;
-      border: none; border-radius: 8px;
-      cursor: pointer; z-index: 10;
-      background: #ff4444; color: #ffffff;
     }
 
-    .duck {
+    #game-screen, #start-screen, #end-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #start-screen, #end-screen {
+      display: flex;
+      background-color: #cceeff;
+    }
+
+    #crosshair {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+      background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Ccircle cx="20" cy="20" r="18" stroke="red" stroke-width="2" fill="none"/%3E%3Cline x1="20" y1="0" x2="20" y2="40" stroke="red" stroke-width="2"/%3E%3Cline x1="0" y1="20" x2="40" y2="20" stroke="red" stroke-width="2"/%3E%3C/svg%3E') no-repeat center center;
+      background-size: contain;
+    }
+
+    #duck, #time-duck {
       position: absolute;
       font-size: 40px;
       cursor: pointer;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      animation: flap 0.4s infinite alternate ease-in-out;
-    }
-    @keyframes flap {
-      from { transform: translateY(0); }
-      to { transform: translateY(-12px); }
     }
 
-    #gameover, #startscreen {
+    #scoreboard {
       position: absolute;
-      top: 50%; left: 50%;
-      width: 90%; max-width: 340px;
-      transform: translate(-50%, -50%);
-      background: #ffffff; padding: 30px;
-      border-radius: 15px;
-      text-align: center;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: rgba(255,255,255,0.7);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    #timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      background: rgba(255,255,255,0.7);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    #bomb-message {
+      position: absolute;
+      top: 60px;
+      left: 10px;
       font-size: 18px;
+      background: rgba(255,0,0,0.7);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
       display: none;
-      z-index: 20;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     }
-    .button {
-      margin-top: 10px;
+
+    button {
+      padding: 12px 24px;
       font-size: 18px;
-      padding: 10px 20px;
-      border: none; border-radius: 10px;
-      background: #4a90e2; color: #ffffff;
+      margin-top: 20px;
       cursor: pointer;
-    }
-    select, input[type="text"] {
-      margin-top: 10px;
-      font-size: 16px;
-      padding: 6px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      font-size: 16px;
-      text-align: left;
-    }
-    li span {
-      float: right;
     }
   </style>
 </head>
 <body>
-  <div id="scoreboard">Score: 0</div>
-  <div id="timer">Tijd: 30</div>
-  <div id="highscore">Highscore: 0</div>
-  <button id="bombButton" onclick="useBomb()">💣 Bomb</button>
-
-  <div id="startscreen">
-    <p><strong>Duck Hunting Game</strong></p>
-    <p>Klik of tik op de eenden voor punten!</p>
-    <label for="playername">Spelernaam:</label><br />
-    <input type="text" id="playername" placeholder="Naam invoeren" /><br />
-    <label for="difficulty">Moeilijkheid:</label><br />
-    <select id="difficulty">
-      <option value="easy">Beginner</option>
-      <option value="normal" selected="selected">Normaal</option>
-      <option value="hard">Expert</option>
-    </select><br />
-    <button class="button" onclick="startGame()">Start</button>
+  <div id="start-screen">
+    <h1>🦆 Duck Hunting</h1>
+    <button onclick="startGame()">Start Game</button>
   </div>
 
-  <div id="gameover">
-    <div id="finalscore">Je score: 0</div>
-    <div><strong>Top 5:</strong></div>
-    <ul id="leaderboard"></ul>
-    <button class="button" onclick="restartGame()">Opnieuw spelen</button>
+  <div id="game-screen">
+    <div id="scoreboard">Score: 0</div>
+    <div id="timer">⏱️ 30</div>
+    <div id="bomb-message">Bom gebruikt! +5 punten</div>
+    <div id="duck">🦆</div>
+    <div id="time-duck" style="display:none;">⏱️</div>
+    <div id="crosshair"></div>
+  </div>
+
+  <div id="end-screen">
+    <h1>Game Over</h1>
+    <p id="final-score"></p>
+    <h2>🏆 Ranglijst</h2>
+    <ol id="leaderboard"></ol>
+    <button onclick="startGame()">Opnieuw spelen</button>
   </div>
 
   <script type="text/javascript">
-  // <![CDATA[
-    // Globale status
+    //<![CDATA[
     var score = 0;
-    var timeLeft = 30;
-    var gameRunning = false;
+    var timeLimit = 30;
+    var duck = document.getElementById("duck");
+    var timeDuck = document.getElementById("time-duck");
+    var crosshair = document.getElementById("crosshair");
+    var scoreboard = document.getElementById("scoreboard");
+    var bombMsg = document.getElementById("bomb-message");
+    var startScreen = document.getElementById("start-screen");
+    var gameScreen = document.getElementById("game-screen");
+    var endScreen = document.getElementById("end-screen");
+    var finalScore = document.getElementById("final-score");
+    var leaderboard = document.getElementById("leaderboard");
+    var timerDisplay = document.getElementById("timer");
+    var bombUsed = false;
+    var gameTimer;
+    var countdownInterval;
+    var timeLeft;
+    var timeDuckTimeout;
 
-    var duckSpeed = 2000;
-    var ducks = [];
-    var duckMoveInterval = null;
-    var timerInterval = null;
+    function moveDuck() {
+      var maxWidth = window.innerWidth - 50;
+      var maxHeight = window.innerHeight - 50;
+      duck.style.left = Math.floor(Math.random() * maxWidth) + "px";
+      duck.style.top = Math.floor(Math.random() * maxHeight) + "px";
+    }
 
-    var duckID = 0;
-    var bombAvailable = true;
+    function moveTimeDuck() {
+      var maxWidth = window.innerWidth - 50;
+      var maxHeight = window.innerHeight - 50;
+      timeDuck.style.left = Math.floor(Math.random() * maxWidth) + "px";
+      timeDuck.style.top = Math.floor(Math.random() * maxHeight) + "px";
+    }
 
-    var leaderboard = [];
+    function showTimeDuck() {
+      timeDuck.style.display = "block";
+      moveTimeDuck();
+    }
 
-    // Timer-eend cooldown (15s)
-    var lastTimeDuckHit = 0;
-    var timeDuckCooldown = 15000; // ms
+    function hideTimeDuck() {
+      timeDuck.style.display = "none";
+      // Na raken: 45 seconden wachten tot hij terugkomt
+      clearTimeout(timeDuckTimeout);
+      timeDuckTimeout = setTimeout(showTimeDuck, 45000);
+    }
 
-    function get(id) { return document.getElementById(id); }
+    function updateLeaderboard() {
+      var scores = JSON.parse(localStorage.getItem("duckhunt-scores") || "[]");
+      var name = prompt("Voer je naam in:");
+      if (!name) name = "Anoniem";
+      scores.push({ name: name, score: score });
+      scores.sort(function(a, b) { return b.score - a.score; });
+      scores = scores.slice(0, 5);
+      localStorage.setItem("duckhunt-scores", JSON.stringify(scores));
 
-    function showStart() {
-      get('startscreen').style.display = 'block';
-      get('gameover').style.display = 'none';
-      document.body.style.cursor = 'auto';
-      get('bombButton').style.display = 'none';
-      score = 0;
-      timeLeft = 30;
-      updateScore();
-      updateTimerLabel();
-      updateHighscore();
-      // Ruim eventuele eenden op
-      for (var i = 0; i < ducks.length; i++) {
-        var d = ducks[i];
-        if (d && d.parentNode) { d.parentNode.removeChild(d); }
+      leaderboard.innerHTML = "";
+      for (var i = 0; i < scores.length; i++) {
+        var li = document.createElement("li");
+        li.textContent = scores[i].name + ": " + scores[i].score;
+        leaderboard.appendChild(li);
       }
-      ducks = [];
     }
 
     function startGame() {
-      var name = get('playername').value;
-      if (!name || /^\s*$/.test(name)) {
-        alert('Vul je naam in om te starten.');
-        return;
-      }
-
-      var level = get('difficulty').value;
-      bombAvailable = true;
-      get('bombButton').style.display = 'inline';
-
-      if (level === 'easy') { duckSpeed = 2500; timeLeft = 40; }
-      else if (level === 'normal') { duckSpeed = 2000; timeLeft = 30; }
-      else { // hard
-        duckSpeed = 1300; timeLeft = 25; bombAvailable = false; get('bombButton').style.display = 'none';
-      }
-
-      // Reset
       score = 0;
-      updateScore();
-      updateTimerLabel();
-      document.body.style.cursor = 'crosshair';
+      bombUsed = false;
+      scoreboard.textContent = "Score: 0";
+      bombMsg.style.display = "none";
+      startScreen.style.display = "none";
+      endScreen.style.display = "none";
+      gameScreen.style.display = "block";
+      moveDuck();
+      timeLeft = timeLimit;
+      timerDisplay.textContent = "⏱️ " + timeLeft;
 
-      // Schermen
-      get('startscreen').style.display = 'none';
-      get('gameover').style.display = 'none';
+      clearInterval(countdownInterval);
+      countdownInterval = setInterval(function () {
+        timeLeft--;
+        timerDisplay.textContent = "⏱️ " + timeLeft;
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
 
-      // Verwijder oude eenden
-      for (var i = 0; i < ducks.length; i++) {
-        var d = ducks[i];
-        if (d && d.parentNode) { d.parentNode.removeChild(d); }
-      }
-      ducks = [];
-      duckID = 0;
-
-      // Start
-      gameRunning = true;
-      addDuck();
-      moveAllDucks();
-
-      if (timerInterval) { clearInterval(timerInterval); }
-      if (duckMoveInterval) { clearInterval(duckMoveInterval); }
-
-      timerInterval = setInterval(updateTimer, 1000);
-      duckMoveInterval = setInterval(moveAllDucks, duckSpeed);
-    }
-
-    function restartGame() {
-      get('gameover').style.display = 'none';
-      get('startscreen').style.display = 'block';
-      document.body.style.cursor = 'auto';
-    }
-
-    function updateScore() {
-      get('scoreboard').textContent = 'Score: ' + score;
-    }
-
-    function updateTimerLabel() {
-      get('timer').textContent = 'Tijd: ' + timeLeft;
-    }
-
-    function updateHighscore() {
-      var stored = localStorage.getItem('duckLeaderboard');
-      if (stored) {
-        try { leaderboard = JSON.parse(stored); }
-        catch (e) { leaderboard = []; }
-      } else {
-        leaderboard = [];
-      }
-      var max = 0;
-      for (var i = 0; i < leaderboard.length; i++) {
-        if (leaderboard[i].score > max) { max = leaderboard[i].score; }
-      }
-      get('highscore').textContent = 'Highscore: ' + max;
-    }
-
-    function updateTimer() {
-      if (!gameRunning) { return; }
-      timeLeft = timeLeft - 1;
-      updateTimerLabel();
-      if (timeLeft <= 0) { endGame(); }
+      clearTimeout(timeDuckTimeout);
+      timeDuckTimeout = setTimeout(showTimeDuck, 5000); // eerste keer na 5 sec
     }
 
     function endGame() {
-      gameRunning = false;
-      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-      if (duckMoveInterval) { clearInterval(duckMoveInterval); duckMoveInterval = null; }
-      get('finalscore').textContent = 'Je score: ' + score;
-      saveScore(score);
-      showLeaderboard();
-      get('gameover').style.display = 'block';
-      document.body.style.cursor = 'auto';
+      clearTimeout(gameTimer);
+      clearInterval(countdownInterval);
+      clearTimeout(timeDuckTimeout);
+      finalScore.textContent = "Je eindscore: " + score;
+      updateLeaderboard();
+      gameScreen.style.display = "none";
+      endScreen.style.display = "flex";
     }
 
-    function positionDuck(duck) {
-      var w = window.innerWidth;
-      var h = window.innerHeight;
-      var x = Math.floor(Math.random() * (w - 60));
-      var y = Math.floor(Math.random() * (h - 60));
-      duck.style.left = String(x) + 'px';
-      duck.style.top = String(y) + 'px';
-    }
-
-    function addDuck() {
-      var duck = document.createElement('div');
-      duck.className = 'duck';
-
-      // 25% kans op ⏱️, maar alleen als cooldown voorbij is
-      var canSpawnTimerDuck = (new Date().getTime() - lastTimeDuckHit) > timeDuckCooldown;
-      var isTimerDuck = (Math.random() < 0.25) && canSpawnTimerDuck;
-
-      duck.appendChild(document.createTextNode(isTimerDuck ? '⏱️' : '🦆'));
-      duck.setAttribute('id', 'duck' + duckID);
-      positionDuck(duck);
-
-      duck.onclick = function (e) {
-        if (!gameRunning) { return false; }
-
-        if (duck.textContent === '⏱️') {
-          timeLeft = timeLeft + 3;
-          updateTimerLabel();
-          lastTimeDuckHit = new Date().getTime();
-        } else {
-          score = score + 1;
-          updateScore();
-        }
-
-        positionDuck(duck);
-        adjustDifficulty();
-        if (e && e.stopPropagation) { e.stopPropagation(); }
-        return false;
-      };
-      // Touch-ondersteuning
-      duck.ontouchstart = duck.onclick;
-
-      document.body.appendChild(duck);
-      ducks.push(duck);
-      duckID = duckID + 1;
-    }
-
-    function moveAllDucks() {
-      if (!gameRunning) { return; }
-      for (var i = 0; i < ducks.length; i++) {
-        positionDuck(ducks[i]);
-      }
-    }
-
-    function adjustDifficulty() {
-      // Sneller bewegen per 5 punten
-      if (score > 0 && (score % 5) === 0 && duckSpeed > 700) {
-        duckSpeed = duckSpeed - 150;
-        if (duckMoveInterval) { clearInterval(duckMoveInterval); }
-        duckMoveInterval = setInterval(moveAllDucks, duckSpeed);
-      }
-      // Extra eend per 7 punten (max 10)
-      if (score > 0 && (score % 7) === 0 && ducks.length < 10) {
-        addDuck();
-      }
-    }
-
-    function useBomb() {
-      if (!gameRunning || !bombAvailable) { return; }
-      // Verwijder alle eenden
-      for (var i = 0; i < ducks.length; i++) {
-        var d = ducks[i];
-        if (d && d.parentNode) { d.parentNode.removeChild(d); }
-      }
-      ducks = [];
-      // Bonuspunten
-      score = score + 3;
-      updateScore();
-      // Voeg precies één eend terug
-      addDuck();
-      bombAvailable = false;
-      get('bombButton').style.display = 'none';
-    }
-
-    function saveScore(s) {
-      var name = get('playername').value;
-      if (!name || /^\s*$/.test(name)) { name = 'Speler'; }
-
-      // Lees bestaande
-      var stored = localStorage.getItem('duckLeaderboard');
-      var list = [];
-      if (stored) {
-        try { list = JSON.parse(stored); }
-        catch (e) { list = []; }
-      }
-
-      list.push({
-        name: name,
-        score: s,
-        time: new Date().toLocaleString()
-      });
-
-      // Sorteer en top 5
-      list.sort(function(a, b) { return b.score - a.score; });
-      if (list.length > 5) { list = list.slice(0, 5); }
-
-      localStorage.setItem('duckLeaderboard', JSON.stringify(list));
-      leaderboard = list;
-      updateHighscore();
-    }
-
-    function showLeaderboard() {
-      var ul = document.getElementById('leaderboard');
-      ul.innerHTML = '';
-      for (var i = 0; i < leaderboard.length; i++) {
-        var entry = leaderboard[i];
-        var li = document.createElement('li');
-        li.appendChild(document.createTextNode(entry.name + ' (' + entry.time + '): '));
-        var span = document.createElement('span');
-        span.appendChild(document.createTextNode(String(entry.score)));
-        li.appendChild(span);
-        ul.appendChild(li);
-      }
-    }
-
-    // Startscherm bij laden
-    window.onload = function () {
-      showStart();
+    duck.onclick = function () {
+      score++;
+      scoreboard.textContent = "Score: " + score;
+      moveDuck();
     };
-  // ]]>
+
+    timeDuck.onclick = function () {
+      timeLeft += 10; // 10 extra seconden
+      scoreboard.textContent = "Score: " + score;
+      hideTimeDuck();
+    };
+
+    document.onclick = function (e) {
+      crosshair.style.left = (e.clientX - 20) + "px";
+      crosshair.style.top = (e.clientY - 20) + "px";
+    };
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === " " && !bombUsed) {
+        score += 5;
+        scoreboard.textContent = "Score: " + score;
+        bombUsed = true;
+        moveDuck();
+        bombMsg.style.display = "block";
+        setTimeout(function () {
+          bombMsg.style.display = "none";
+        }, 3000);
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').then(function (reg) {
+        console.log("Service Worker geregistreerd!");
+      });
+    }
+    //]]>
   </script>
 </body>
 </html>
