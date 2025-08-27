@@ -1,214 +1,155 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
-  <title>Duck Hunting PWA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" href="icon-192.png" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <meta name="theme-color" content="#4a90e2" />
-  <style type="text/css">
+  <title>Duck Hunting Mobile</title>
+  <meta charset="UTF-8" />
+  <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: sans-serif;
-      background-color: #cceeff;
+      font-family: Arial, sans-serif;
+      background: #87CEEB;
       overflow: hidden;
+      text-align: center;
     }
-
-    #game-screen, #start-screen, #end-screen {
-      position: absolute;
-      width: 100%;
-      height: 100%;
+    #start-screen, #game-over, #leaderboard {
       display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #87CEEB;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      text-align: center;
     }
-
-    #start-screen, #end-screen {
+    #start-screen.active, #game-over.active, #leaderboard.active {
       display: flex;
-      background-color: #cceeff;
     }
-
-    #crosshair {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      pointer-events: none;
-      background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Ccircle cx="20" cy="20" r="18" stroke="red" stroke-width="2" fill="none"/%3E%3Cline x1="20" y1="0" x2="20" y2="40" stroke="red" stroke-width="2"/%3E%3Cline x1="0" y1="20" x2="40" y2="20" stroke="red" stroke-width="2"/%3E%3C/svg%3E') no-repeat center center;
-      background-size: contain;
+    #game-screen {
+      display: none;
+      width: 100%; height: 100vh;
+      position: relative;
+      overflow: hidden;
     }
-
-    #duck, #time-duck {
-      position: absolute;
-      font-size: 40px;
-      cursor: pointer;
-    }
-
     #scoreboard {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
+      top: 10px; left: 10px;
+      font-size: 20px;
       background: rgba(255,255,255,0.7);
-      padding: 8px 12px;
+      padding: 5px 10px;
       border-radius: 8px;
     }
-
-    #timer {
+    #duck, #clock-duck {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 24px;
-      background: rgba(255,255,255,0.7);
-      padding: 8px 12px;
-      border-radius: 8px;
+      font-size: 40px;
+      cursor: crosshair;
     }
-
-    #bomb-message {
+    #crosshair {
+      width: 40px; height: 40px;
+      border: 2px solid red;
+      border-radius: 50%;
       position: absolute;
-      top: 60px;
-      left: 10px;
-      font-size: 18px;
-      background: rgba(255,0,0,0.7);
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 6px;
+      pointer-events: none;
       display: none;
     }
-
-    button {
-      padding: 12px 24px;
-      font-size: 18px;
-      margin-top: 20px;
+    #bomb-message {
+      position: absolute;
+      top: 50px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+      color: red;
+      display: none;
+    }
+    #bomb-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px;
+      font-size: 24px;
+      border: none;
+      border-radius: 50%;
+      background: red;
+      color: white;
+      box-shadow: 0px 4px 6px rgba(0,0,0,0.3);
       cursor: pointer;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div id="start-screen">
-    <h1>🦆 Duck Hunting</h1>
-    <button onclick="startGame()">Start Game</button>
+  <!-- Startscherm -->
+  <div id="start-screen" class="active">
+    <h1>Duck Hunting</h1>
+    <p>Kies moeilijkheidsgraad:</p>
+    <button onclick="startGame('easy')">Easy</button>
+    <button onclick="startGame('medium')">Medium</button>
+    <button onclick="startGame('hard')">Hard</button>
   </div>
 
+  <!-- Game scherm -->
   <div id="game-screen">
     <div id="scoreboard">Score: 0</div>
-    <div id="timer">⏱️ 30</div>
     <div id="bomb-message">Bom gebruikt! +5 punten</div>
     <div id="duck">🦆</div>
-    <div id="time-duck" style="display:none;">⏱️</div>
+    <div id="clock-duck" style="display:none;">⏱️</div>
     <div id="crosshair"></div>
+    <button id="bomb-button">💣</button>
   </div>
 
-  <div id="end-screen">
+  <!-- Game over scherm -->
+  <div id="game-over">
     <h1>Game Over</h1>
     <p id="final-score"></p>
-    <h2>🏆 Ranglijst</h2>
-    <ol id="leaderboard"></ol>
-    <button onclick="startGame()">Opnieuw spelen</button>
+    <p>Vul je naam in:</p>
+    <input type="text" id="player-name" placeholder="Jouw naam" />
+    <button onclick="saveScore()">Opslaan &amp; Leaderboard</button>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard">
+    <h1>Leaderboard</h1>
+    <ol id="scores-list"></ol>
+    <button onclick="restart()">Opnieuw spelen</button>
   </div>
 
   <script type="text/javascript">
-    //<![CDATA[
-    var score = 0;
-    var timeLimit = 30;
     var duck = document.getElementById("duck");
-    var timeDuck = document.getElementById("time-duck");
-    var crosshair = document.getElementById("crosshair");
+    var clockDuck = document.getElementById("clock-duck");
     var scoreboard = document.getElementById("scoreboard");
     var bombMsg = document.getElementById("bomb-message");
-    var startScreen = document.getElementById("start-screen");
-    var gameScreen = document.getElementById("game-screen");
-    var endScreen = document.getElementById("end-screen");
-    var finalScore = document.getElementById("final-score");
-    var leaderboard = document.getElementById("leaderboard");
-    var timerDisplay = document.getElementById("timer");
+    var bombButton = document.getElementById("bomb-button");
+    var crosshair = document.getElementById("crosshair");
+
+    var score = 0;
     var bombUsed = false;
-    var gameTimer;
-    var countdownInterval;
-    var timeLeft;
-    var timeDuckTimeout;
+    var gameInterval;
+    var gameTime = 30; // seconden
+    var difficultySpeed = 2000;
+    var clockAvailable = true;
+    var clockTimer;
 
-    function moveDuck() {
-      var maxWidth = window.innerWidth - 50;
-      var maxHeight = window.innerHeight - 50;
-      duck.style.left = Math.floor(Math.random() * maxWidth) + "px";
-      duck.style.top = Math.floor(Math.random() * maxHeight) + "px";
-    }
-
-    function moveTimeDuck() {
-      var maxWidth = window.innerWidth - 50;
-      var maxHeight = window.innerHeight - 50;
-      timeDuck.style.left = Math.floor(Math.random() * maxWidth) + "px";
-      timeDuck.style.top = Math.floor(Math.random() * maxHeight) + "px";
-    }
-
-    function showTimeDuck() {
-      timeDuck.style.display = "block";
-      moveTimeDuck();
-    }
-
-    function hideTimeDuck() {
-      timeDuck.style.display = "none";
-      // Na raken: 45 seconden wachten tot hij terugkomt
-      clearTimeout(timeDuckTimeout);
-      timeDuckTimeout = setTimeout(showTimeDuck, 45000);
-    }
-
-    function updateLeaderboard() {
-      var scores = JSON.parse(localStorage.getItem("duckhunt-scores") || "[]");
-      var name = prompt("Voer je naam in:");
-      if (!name) name = "Anoniem";
-      scores.push({ name: name, score: score });
-      scores.sort(function(a, b) { return b.score - a.score; });
-      scores = scores.slice(0, 5);
-      localStorage.setItem("duckhunt-scores", JSON.stringify(scores));
-
-      leaderboard.innerHTML = "";
-      for (var i = 0; i < scores.length; i++) {
-        var li = document.createElement("li");
-        li.textContent = scores[i].name + ": " + scores[i].score;
-        leaderboard.appendChild(li);
-      }
-    }
-
-    function startGame() {
+    function startGame(difficulty) {
+      document.getElementById("start-screen").classList.remove("active");
+      document.getElementById("game-screen").style.display = "block";
       score = 0;
       bombUsed = false;
+      clockAvailable = true;
       scoreboard.textContent = "Score: 0";
-      bombMsg.style.display = "none";
-      startScreen.style.display = "none";
-      endScreen.style.display = "none";
-      gameScreen.style.display = "block";
+
+      // moeilijkheid instellen
+      if (difficulty === "easy") difficultySpeed = 2000;
+      if (difficulty === "medium") difficultySpeed = 1200;
+      if (difficulty === "hard") difficultySpeed = 700;
+
       moveDuck();
-      timeLeft = timeLimit;
-      timerDisplay.textContent = "⏱️ " + timeLeft;
-
-      clearInterval(countdownInterval);
-      countdownInterval = setInterval(function () {
-        timeLeft--;
-        timerDisplay.textContent = "⏱️ " + timeLeft;
-        if (timeLeft <= 0) {
-          endGame();
-        }
-      }, 1000);
-
-      clearTimeout(timeDuckTimeout);
-      timeDuckTimeout = setTimeout(showTimeDuck, 5000); // eerste keer na 5 sec
+      gameInterval = setInterval(moveDuck, difficultySpeed);
+      startClockDuck();
     }
 
-    function endGame() {
-      clearTimeout(gameTimer);
-      clearInterval(countdownInterval);
-      clearTimeout(timeDuckTimeout);
-      finalScore.textContent = "Je eindscore: " + score;
-      updateLeaderboard();
-      gameScreen.style.display = "none";
-      endScreen.style.display = "flex";
+    function moveDuck() {
+      var x = Math.random() * (window.innerWidth - 50);
+      var y = Math.random() * (window.innerHeight - 50);
+      duck.style.left = x + "px";
+      duck.style.top = y + "px";
     }
 
     duck.onclick = function () {
@@ -217,19 +158,39 @@
       moveDuck();
     };
 
-    timeDuck.onclick = function () {
-      timeLeft += 10; // 10 extra seconden
+    // klok-eend logica
+    function startClockDuck() {
+      showClockDuck();
+      clockTimer = setInterval(showClockDuck, 45000);
+    }
+
+    function showClockDuck() {
+      if (clockAvailable) {
+        var x = Math.random() * (window.innerWidth - 50);
+        var y = Math.random() * (window.innerHeight - 50);
+        clockDuck.style.left = x + "px";
+        clockDuck.style.top = y + "px";
+        clockDuck.style.display = "block";
+      }
+    }
+
+    clockDuck.onclick = function () {
+      score += 3;
       scoreboard.textContent = "Score: " + score;
-      hideTimeDuck();
+      clockDuck.style.display = "none";
+      clockAvailable = false;
+      setTimeout(function () {
+        clockAvailable = true;
+      }, 45000);
     };
 
-    document.onclick = function (e) {
-      crosshair.style.left = (e.clientX - 20) + "px";
-      crosshair.style.top = (e.clientY - 20) + "px";
-    };
+    // bom knop logica
+    if (window.innerWidth < 768) {
+      bombButton.style.display = "block";
+    }
 
-    document.addEventListener("keydown", function (e) {
-      if (e.key === " " && !bombUsed) {
+    bombButton.onclick = function () {
+      if (!bombUsed) {
         score += 5;
         scoreboard.textContent = "Score: " + score;
         bombUsed = true;
@@ -239,14 +200,50 @@
           bombMsg.style.display = "none";
         }, 3000);
       }
+    };
+
+    // crosshair
+    document.addEventListener("mousemove", function (e) {
+      crosshair.style.left = e.pageX - 20 + "px";
+      crosshair.style.top = e.pageY - 20 + "px";
     });
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(function (reg) {
-        console.log("Service Worker geregistreerd!");
+    // game timer
+    setTimeout(endGame, gameTime * 1000);
+
+    function endGame() {
+      clearInterval(gameInterval);
+      clearInterval(clockTimer);
+      document.getElementById("game-screen").style.display = "none";
+      document.getElementById("game-over").classList.add("active");
+      document.getElementById("final-score").textContent = "Jouw score: " + score;
+    }
+
+    // leaderboard
+    function saveScore() {
+      var name = document.getElementById("player-name").value || "Anoniem";
+      var scores = JSON.parse(localStorage.getItem("duckScores") || "[]");
+      scores.push({ name: name, score: score });
+      scores.sort(function(a, b){ return b.score - a.score; });
+      scores = scores.slice(0, 10);
+      localStorage.setItem("duckScores", JSON.stringify(scores));
+
+      document.getElementById("game-over").classList.remove("active");
+      document.getElementById("leaderboard").classList.add("active");
+
+      var list = document.getElementById("scores-list");
+      list.innerHTML = "";
+      scores.forEach(function(s){
+        var li = document.createElement("li");
+        li.textContent = s.name + ": " + s.score;
+        list.appendChild(li);
       });
     }
-    //]]>
+
+    function restart() {
+      document.getElementById("leaderboard").classList.remove("active");
+      document.getElementById("start-screen").classList.add("active");
+    }
   </script>
 </body>
 </html>
