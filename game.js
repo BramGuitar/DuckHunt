@@ -3,7 +3,6 @@ const scoreEl = document.getElementById("score");
 const timeEl = document.getElementById("time");
 const missesEl = document.getElementById("misses");
 const messageEl = document.getElementById("message");
-const startBtn = document.getElementById("startBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const restartBtn = document.getElementById("restartBtn");
 const crosshair = document.getElementById("crosshair");
@@ -72,6 +71,7 @@ function spawnDuck() {
   duck.className = "duck";
   duck.type = "button";
   duck.setAttribute("aria-label", "Duck target");
+  duck.textContent = "🦆";
 
   const rect = gameArea.getBoundingClientRect();
   const size = Math.min(66, Math.max(44, rect.width * 0.11));
@@ -170,12 +170,11 @@ function endGame(timeUp) {
     <p>${state.score >= 200 ? "Sharp shooting!" : "Try again for a higher score."}</p>
     <button id="startBtn" type="button">Play Again</button>
   `;
-
-  const playAgainBtn = messageEl.querySelector("#startBtn");
-  playAgainBtn.addEventListener("click", startGame, { once: true });
 }
 
 function showCrosshair(event) {
+  if (!messageEl.hidden) return;
+
   const rect = gameArea.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
@@ -192,7 +191,16 @@ function showCrosshair(event) {
   }
 }
 
-startBtn.addEventListener("click", startGame);
+messageEl.addEventListener("pointerdown", (event) => {
+  event.stopPropagation();
+});
+messageEl.addEventListener("click", (event) => {
+  const startButton = event.target.closest("#startBtn");
+  if (startButton) {
+    event.stopPropagation();
+    startGame();
+  }
+});
 pauseBtn.addEventListener("click", pauseResume);
 restartBtn.addEventListener("click", startGame);
 gameArea.addEventListener("pointerdown", showCrosshair);
