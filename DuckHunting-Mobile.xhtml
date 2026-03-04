@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Klok Eend 🦆</title>
+<title>Duck Hunting 🦆</title>
+
 <style>
 body {
   margin:0;
@@ -12,6 +13,7 @@ body {
   font-family:Arial,sans-serif;
 }
 canvas { display:block; }
+
 #overlay, #gameOver {
   position:fixed;
   inset:0;
@@ -24,6 +26,7 @@ canvas { display:block; }
   z-index:10;
   text-align:center;
 }
+
 button {
   padding:15px 30px;
   font-size:20px;
@@ -32,13 +35,15 @@ button {
   background:#4CAF50;
   color:white;
 }
+
 #leaderboard { margin-top:20px; }
 </style>
 </head>
+
 <body>
 
 <div id="overlay">
-  <h1>Klok Eend 🦆</h1>
+  <h1>Duck Hunting 🦆</h1>
   <p>Schiet eenden, maak combo’s en haal 50 punten!</p>
   <button onclick="startGame()">Start</button>
   <div id="leaderboard"></div>
@@ -259,5 +264,6 @@ function showLeaderboard(){
 
 showLeaderboard();
 </script>
+
 </body>
 </html>
