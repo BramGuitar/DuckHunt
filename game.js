@@ -204,5 +204,26 @@ messageEl.addEventListener("click", (event) => {
 pauseBtn.addEventListener("click", pauseResume);
 restartBtn.addEventListener("click", startGame);
 gameArea.addEventListener("pointerdown", showCrosshair);
+gameArea.addEventListener(
+  "touchmove",
+  (event) => {
+    if (state.running && !state.paused) {
+      event.preventDefault();
+    }
+  },
+  { passive: false }
+);
+let lastTouchTime = 0;
+document.addEventListener(
+  "touchend",
+  (event) => {
+    const now = Date.now();
+    if (now - lastTouchTime < 300) {
+      event.preventDefault();
+    }
+    lastTouchTime = now;
+  },
+  { passive: false }
+);
 
 resetState();
