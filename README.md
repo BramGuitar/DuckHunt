@@ -1,6 +1,6 @@
 # Duck Hunting Mobile Game
 
-A simple mobile-first duck hunting shooting game built with plain HTML, CSS, and JavaScript.
+A mobile-first duck hunting shooter built with plain HTML, CSS, and JavaScript.
 
 ## Play locally
 
@@ -28,9 +28,16 @@ Then open `http://localhost:8080`.
 ## Controls
 
 - Tap a duck to score points.
-- Chain hits to increase combo multiplier (`x2` then `x3`).
-- Golden bonus ducks are worth more points and add extra time.
+- Build combos to increase multiplier and trigger `Frenzy` mode.
+- Hit rare `⏰` clock targets to gain `+10` seconds.
+- Hitting red penalty ducks lowers your score.
+- Hit `🛡️` shield targets to block future misses.
+- Hit `❄️` targets to activate temporary slow motion.
+- Every 6-hit streak grants a small bonus (`+2s` and score boost).
 - Tapping empty space counts as a miss.
-- Speed increases over time as difficulty ramps up.
-- You lose after 8 misses, or when the timer reaches 0.
-- Best score is saved on your device.
+- Speed and spawn pressure increase over time with level progression.
+- Choose `Easy`, `Normal`, or `Hard` mode from the home screen.
+- Toggle sound and haptics in the home menu.
+- You lose when max misses for the selected mode is reached, or when timer reaches 0.
+- Best score and leaderboard are saved on your device.
+- Live accuracy percentage is tracked in the HUD and shown on game over.
