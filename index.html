@@ -6,6 +6,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Duck Hunt" />
+  <meta name="theme-color" content="#7ec8ff" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <title>Duck Hunting Mobile</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,14 +17,17 @@
   <main class="game-shell">
     <header class="hud" aria-label="Game HUD">
       <div class="hud-item">Score: <span id="score">0</span></div>
+      <div class="hud-item">Best: <span id="highScore">0</span></div>
       <div class="hud-item">Time: <span id="time">45</span>s</div>
       <div class="hud-item">Misses: <span id="misses">0</span>/8</div>
+      <div class="hud-item">Combo: <span id="combo">x1</span></div>
     </header>
 
     <section id="gameArea" class="game-area" aria-label="Duck hunting game area">
       <div id="message" class="message">
         <h1>Duck Hunting</h1>
         <p>Tap ducks to score points.</p>
+        <p>Chain hits to build combo.</p>
         <p>Miss too many and you lose.</p>
         <button id="startBtn" type="button">Start Game</button>
       </div>

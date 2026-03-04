@@ -51,6 +51,11 @@ body {
   font-size: 0.95rem;
 }
 
+.hud-item:last-child,
+.hud-item:nth-child(2) {
+  background: rgba(255, 245, 210, 0.92);
+}
+
 .game-area {
   position: relative;
   overflow: hidden;
@@ -77,6 +82,11 @@ body {
   transform-origin: center;
   animation: flap 0.18s infinite alternate ease-in-out;
   user-select: none;
+}
+
+.duck.bonus {
+  filter: drop-shadow(0 0 6px rgba(255, 208, 80, 0.8));
+  animation-duration: 0.12s;
 }
 
 .duck.hit {
@@ -193,6 +203,12 @@ button:disabled {
 
   .game-area {
     min-height: 520px;
+  }
+}
+
+@media (max-width: 390px) {
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

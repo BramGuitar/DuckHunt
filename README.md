@@ -28,5 +28,9 @@ Then open `http://localhost:8080`.
 ## Controls
 
 - Tap a duck to score points.
+- Chain hits to increase combo multiplier (`x2` then `x3`).
+- Golden bonus ducks are worth more points and add extra time.
 - Tapping empty space counts as a miss.
+- Speed increases over time as difficulty ramps up.
 - You lose after 8 misses, or when the timer reaches 0.
+- Best score is saved on your device.
