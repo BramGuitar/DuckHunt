@@ -1,303 +1,263 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="nl" lang="nl">
+<!DOCTYPE html>
+<html lang="nl">
 <head>
-  <title>Klok Eend Spel</title>
-  <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-  <style type="text/css">
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #87CEEB;
-      overflow: hidden;
-      text-align: center;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-      background: #cceeff;
-      border: 2px solid #333;
-    }
-    #overlay, #gameOverScreen {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      font-size: 24px;
-      z-index: 10;
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      font-size: 20px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-    #levelUp {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 40px;
-      font-weight: bold;
-      color: yellow;
-      text-shadow: 2px 2px 5px black;
-      display: none;
-      animation: fade 2s ease-out;
-    }
-    @keyframes fade {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-    #achievements {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 14px;
-      text-align: left;
-      max-width: 200px;
-    }
-    #leaderboard {
-      margin-top: 20px;
-      font-size: 18px;
-      text-align: left;
-      max-width: 300px;
-    }
-    #leaderboard h2 {
-      margin-bottom: 5px;
-      font-size: 22px;
-    }
-    #leaderboard ol {
-      margin: 0;
-      padding-left: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klok Eend 🦆</title>
+<style>
+body {
+  margin:0;
+  overflow:hidden;
+  background:linear-gradient(#87CEEB,#e0f7ff);
+  font-family:Arial,sans-serif;
+}
+canvas { display:block; }
+#overlay, #gameOver {
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.75);
+  color:white;
+  z-index:10;
+  text-align:center;
+}
+button {
+  padding:15px 30px;
+  font-size:20px;
+  border-radius:12px;
+  border:none;
+  background:#4CAF50;
+  color:white;
+}
+#leaderboard { margin-top:20px; }
+</style>
 </head>
 <body>
-  <div id="overlay">
-    <h1>Welkom bij Klok Eend 🦆</h1>
-    <p>Schiet zoveel mogelijk eenden!<br />Let op de speciale eenden voor verrassingen.</p>
-    <button onclick="startGame()">Start spel</button>
-    <div id="leaderboard"></div>
-  </div>
 
-  <div id="gameOverScreen" style="display:none;">
-    <h1>Game Over!</h1>
-    <p id="finalScore"></p>
-    <button onclick="restartGame()">Opnieuw spelen</button>
-    <div id="leaderboard"></div>
-  </div>
+<div id="overlay">
+  <h1>Klok Eend 🦆</h1>
+  <p>Schiet eenden, maak combo’s en haal 50 punten!</p>
+  <button onclick="startGame()">Start</button>
+  <div id="leaderboard"></div>
+</div>
 
-  <div id="levelUp">Level Up! 🚀</div>
-  <div id="achievements"></div>
-  <canvas id="gameCanvas" width="800" height="500"></canvas>
+<div id="gameOver" style="display:none;">
+  <h1>Game Over</h1>
+  <p id="finalScore"></p>
+  <button onclick="restartGame()">Opnieuw</button>
+  <div id="leaderboard"></div>
+</div>
 
-  <script type="text/javascript">
-// --- volledige JS zoals eerder (ongewijzigd behalve XHTML compat) ---
-/* Ik laat de JS intact; XHTML accepteert gewone <script type="text/javascript"> 
-   zolang de inhoud geldig JS is. */
-const canvas = document.getElementById("gameCanvas");
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let gameRunning = false;
-let ducks = [];
-let score = 0;
-let level = 1;
-let achievements = [];
-let duckSpeed = 2;
-let clockCooldown = 0;
-let chainHits = 0;
-let clockHits = 0;
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize",resizeCanvas);
+resizeCanvas();
 
-class Duck {
-  constructor(type="normal") {
-    this.x = -50;
-    this.y = Math.random() * (canvas.height - 50);
-    this.speed = duckSpeed + Math.random() * 2;
-    this.type = type; // normal, clock, green, blue, red
+let gameRunning=false;
+let ducks=[];
+let particles=[];
+let score=0;
+let lives=3;
+let combo=0;
+let comboTimer=0;
+let clockCooldown=0;
+let lastTime=0;
+
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq,dur){
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.value=freq;
+  osc.start();
+  gain.gain.setValueAtTime(0.2,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+  osc.stop(audioCtx.currentTime+dur);
+}
+
+class Duck{
+  constructor(type="normal"){
+    this.x=-50;
+    this.y=Math.random()*canvas.height;
+    this.type=type;
+    this.speed=2+Math.random()*2+Math.floor(score/10);
   }
-  draw() {
-    ctx.beginPath();
-    if (this.type === "clock") {
-      ctx.fillStyle = "gold";
-      ctx.arc(this.x, this.y, 20, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = "black";
-      ctx.fillText("⏰", this.x-10, this.y+5);
-    } else if (this.type === "green") {
-      ctx.fillStyle = "limegreen";
-      ctx.fillRect(this.x-15, this.y-10, 30, 20);
-    } else if (this.type === "blue") {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(this.x-15, this.y-10, 30, 20);
-    } else if (this.type === "red") {
-      ctx.fillStyle = "red";
-      ctx.fillRect(this.x-15, this.y-10, 30, 20);
-    } else {
-      ctx.fillStyle = "brown";
-      ctx.fillRect(this.x-15, this.y-10, 30, 20);
-    }
-    ctx.closePath();
+  draw(){
+    ctx.font="40px Arial";
+    let emoji="🦆";
+    if(this.type==="clock") emoji="⏰";
+    if(this.type==="green") emoji="🟢";
+    if(this.type==="red") emoji="🔴";
+    if(this.type==="blue") emoji="🔵";
+    if(this.type==="boom") emoji="💣";
+    ctx.fillText(emoji,this.x,this.y);
   }
-  update() {
-    this.x += this.speed;
+  update(delta){
+    this.x+=this.speed*(delta/16);
   }
 }
 
-function spawnDuck() {
-  const chance = Math.random();
-  if (clockCooldown <= 0 && chance < 0.05) {
+function spawnDuck(){
+  let r=Math.random();
+  if(clockCooldown<=0 && r<0.05){
     ducks.push(new Duck("clock"));
-    clockCooldown = 45 * 60; // 45 sec bij 60fps
-  } else if (chance < 0.1) {
-    ducks.push(new Duck("green"));
-  } else if (chance < 0.15) {
-    ducks.push(new Duck("blue"));
-  } else if (chance < 0.2) {
-    ducks.push(new Duck("red"));
-  } else {
-    ducks.push(new Duck("normal"));
+    clockCooldown=600;
   }
+  else if(r<0.1) ducks.push(new Duck("green"));
+  else if(r<0.15) ducks.push(new Duck("blue"));
+  else if(r<0.2) ducks.push(new Duck("red"));
+  else if(r<0.23) ducks.push(new Duck("boom"));
+  else ducks.push(new Duck());
 }
 
-function checkLevelUp() {
-  if (score >= 10 && level === 1) nextLevel();
-  else if (score >= 20 && level === 2) nextLevel();
-  else if (score >= 40 && level === 3) nextLevel();
-}
+function handleShot(e){
+  if(!gameRunning) return;
+  beep(500,0.1);
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const y=e.clientY-rect.top;
 
-function nextLevel() {
-  level++;
-  duckSpeed += 1;
-  showLevelUp();
-}
-
-function showLevelUp() {
-  const levelUpDiv = document.getElementById("levelUp");
-  levelUpDiv.style.display = "block";
-  setTimeout(function(){ levelUpDiv.style.display = "none"; }, 2000);
-}
-
-function addAchievement(name) {
-  if (!achievements.includes(name)) {
-    achievements.push(name);
-    document.getElementById("achievements").innerHTML += "🏆 " + name + "<br />";
-  }
-}
-
-canvas.addEventListener("click", function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-
-  ducks.forEach(function(duck, i) {
-    if (mouseX > duck.x-20 && mouseX < duck.x+20 && mouseY > duck.y-20 && mouseY < duck.y+20) {
-      if (duck.type === "clock") {
-        score += 5;
-        clockHits++;
-        if (clockHits >= 3) addAchievement("Tijdbonus");
-      } else if (duck.type === "green") {
-        score += 2;
-      } else if (duck.type === "blue") {
-        duckSpeed = Math.max(1, duckSpeed - 1);
-      } else if (duck.type === "red") {
-        score -= 3;
-      } else {
-        score++;
-        chainHits++;
-        if (chainHits >= 5) addAchievement("Scherpschutter");
-      }
-      ducks.splice(i, 1);
+  ducks.forEach((duck,i)=>{
+    if(x>duck.x-30 && x<duck.x+30 && y>duck.y-30 && y<duck.y+30){
+      hitDuck(duck,i,x,y);
     }
   });
-});
+}
+canvas.addEventListener("pointerdown",handleShot);
 
-function update() {
-  if (!gameRunning) return;
+function hitDuck(duck,i,x,y){
+  beep(900,0.1);
+  combo++;
+  comboTimer=120;
+
+  if(duck.type==="clock") score+=5;
+  else if(duck.type==="green") score+=2;
+  else if(duck.type==="red") score-=3;
+  else if(duck.type==="blue"){}
+  else if(duck.type==="boom"){
+    ducks=[];
+    score+=10;
+  }
+  else score+=1;
+
+  score+=combo;
+  createParticles(x,y);
+  ducks.splice(i,1);
+}
+
+function createParticles(x,y){
+  for(let i=0;i<10;i++){
+    particles.push({
+      x,y,
+      vx:(Math.random()-0.5)*4,
+      vy:(Math.random()-0.5)*4,
+      life:30
+    });
+  }
+}
+
+function update(delta){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  if (Math.random() < 0.02) spawnDuck();
-  ducks.forEach(function(duck) {
-    duck.update();
-    duck.draw();
+  if(Math.random()<0.02) spawnDuck();
+  if(clockCooldown>0) clockCooldown--;
+
+  ducks.forEach((d,i)=>{
+    d.update(delta);
+    d.draw();
+    if(d.x>canvas.width){
+      ducks.splice(i,1);
+      lives--;
+      if(lives<=0) endGame();
+    }
   });
 
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 10, 20);
-  ctx.fillText("Level: " + level, 10, 40);
+  particles.forEach((p,i)=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.life--;
+    ctx.fillStyle="yellow";
+    ctx.fillRect(p.x,p.y,4,4);
+    if(p.life<=0) particles.splice(i,1);
+  });
 
-  ducks = ducks.filter(function(d){ return d.x < canvas.width + 50; });
+  if(comboTimer>0) comboTimer--;
+  else combo=0;
 
-  if (clockCooldown > 0) clockCooldown--;
+  ctx.fillStyle="black";
+  ctx.font="20px Arial";
+  ctx.fillText("Score: "+score,20,30);
+  ctx.fillText("Combo x"+combo,20,60);
+  ctx.fillText("❤️ "+lives,canvas.width-100,30);
 
-  checkLevelUp();
-
-  if (score >= 50) {
-    endGame();
-  } else {
-    requestAnimationFrame(update);
-  }
+  if(score>=50) endGame();
 }
 
-function startGame() {
-  document.getElementById("overlay").style.display = "none";
-  document.getElementById("gameOverScreen").style.display = "none";
-  gameRunning = true;
-  score = 0;
-  level = 1;
-  achievements = [];
-  document.getElementById("achievements").innerHTML = "";
-  duckSpeed = 2;
-  ducks = [];
-  update();
+function gameLoop(timestamp){
+  if(!gameRunning) return;
+  const delta=timestamp-lastTime;
+  lastTime=timestamp;
+  update(delta);
+  requestAnimationFrame(gameLoop);
 }
 
-function endGame() {
-  gameRunning = false;
-  saveScore(score);
-  document.getElementById("finalScore").innerText = "Je eindscore: " + score;
+function startGame(){
+  document.documentElement.requestFullscreen?.();
+  audioCtx.resume();
+  score=0;
+  lives=3;
+  combo=0;
+  ducks=[];
+  particles=[];
+  gameRunning=true;
+  document.getElementById("overlay").style.display="none";
+  document.getElementById("gameOver").style.display="none";
+  requestAnimationFrame(gameLoop);
+}
+
+function endGame(){
+  gameRunning=false;
+  let name=prompt("Je naam?");
+  saveScore(name||"Speler",score);
+  document.getElementById("finalScore").innerText="Score: "+score;
   showLeaderboard();
-  document.getElementById("gameOverScreen").style.display = "flex";
+  document.getElementById("gameOver").style.display="flex";
 }
 
-function restartGame() {
-  startGame();
+function restartGame(){ startGame(); }
+
+function saveScore(name,newScore){
+  let scores=JSON.parse(localStorage.getItem("leaderboard"))||[];
+  scores.push({name,score:newScore});
+  scores.sort((a,b)=>b.score-a.score);
+  scores=scores.slice(0,5);
+  localStorage.setItem("leaderboard",JSON.stringify(scores));
 }
 
-// Leaderboard functies
-function saveScore(newScore) {
-  let scores = JSON.parse(localStorage.getItem("leaderboard")) || [];
-  scores.push(newScore);
-  scores.sort(function(a,b){ return b-a; });
-  scores = scores.slice(0,5); // top 5
-  localStorage.setItem("leaderboard", JSON.stringify(scores));
-}
-
-function showLeaderboard() {
-  let scores = JSON.parse(localStorage.getItem("leaderboard")) || [];
-  let html = "<h2>Leaderboard</h2><ol>";
-  scores.forEach(function(s) {
-    html += "<li>" + s + " punten</li>";
+function showLeaderboard(){
+  let scores=JSON.parse(localStorage.getItem("leaderboard"))||[];
+  let html="<h3>Leaderboard</h3><ol>";
+  scores.forEach(s=>{
+    html+="<li>"+s.name+" - "+s.score+"</li>";
   });
-  html += "</ol>";
-  var els = document.querySelectorAll("#leaderboard");
-  els.forEach(function(el){ el.innerHTML = html; });
+  html+="</ol>";
+  document.querySelectorAll("#leaderboard")
+    .forEach(el=>el.innerHTML=html);
 }
 
 showLeaderboard();
-  </script>
+</script>
 </body>
 </html>
