@@ -1,43 +1,50 @@
-# Duck Hunting Mobile Game
+# Duck Hunting Mobile Game (Next Level)
 
-A mobile-first duck hunting shooter built with plain HTML, CSS, and JavaScript.
+A mobile-first duck hunting shooter built with plain HTML/CSS/JS and upgraded with progression, economy, and competitive systems.
+
+## Features implemented
+
+1. Online leaderboard hooks + anti-cheat proof payload
+2. Weekly rotating events (deterministic by ISO week)
+3. Unlock system (skins, crosshairs, trails, badges)
+4. Daily missions + login streak rewards
+5. Boss waves
+6. Skill tree upgrades (combo grace, shield cap, clock value)
+7. Audio/haptics pack with toggles
+8. Coins + in-game shop economy
+9. Async duels using shareable duel code
+10. Replay/challenge code (seeded run sharing)
+
+## Navigation updates
+
+- Economy + Shop now opens in a dedicated menu page.
+- A `Go to Shop` button is available on the game-over screen.
 
 ## Play locally
-
-1. Open `index.html` directly in your browser, or
-2. Run a local server in this folder:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then open `http://localhost:8080`.
+Open [http://localhost:8080](http://localhost:8080).
 
-## Publish on GitHub (GitHub Pages)
+## GitHub Pages
 
-1. Create a new GitHub repository.
-2. Push this folder to the `main` branch.
-3. In GitHub, go to **Settings -> Pages**.
-4. Under **Build and deployment**, set:
-   - **Source**: `Deploy from a branch`
-   - **Branch**: `main` and `/ (root)`
-5. Save and wait about 1 minute.
-6. Your game will be available at:
-   - `https://<your-username>.github.io/<repo-name>/`
+1. Push to `main`
+2. In GitHub: `Settings -> Pages`
+3. Source: `Deploy from a branch`
+4. Branch: `main` + `/ (root)`
 
-## Controls
+## Online leaderboard setup (optional)
 
-- Tap a duck to score points.
-- Build combos to increase multiplier and trigger `Frenzy` mode.
-- Hit rare `⏰` clock targets to gain `+10` seconds.
-- Hitting red penalty ducks lowers your score.
-- Hit `🛡️` shield targets to block future misses.
-- Hit `❄️` targets to activate temporary slow motion.
-- Every 6-hit streak grants a small bonus (`+2s` and score boost).
-- Tapping empty space counts as a miss.
-- Speed and spawn pressure increase over time with level progression.
-- Choose `Easy`, `Normal`, or `Hard` mode from the home screen.
-- Toggle sound and haptics in the home menu.
-- You lose when max misses for the selected mode is reached, or when timer reaches 0.
-- Best score and leaderboard are saved on your device.
-- Live accuracy percentage is tracked in the HUD and shown on game over.
+The game works fully with local leaderboard by default.
+
+For real online rankings, set `ONLINE_LEADERBOARD_URL` in [`game.js`](/Users/bramvanderzanden/Documents/Duck%20Hunting/game.js) to your backend endpoint that supports:
+
+- `GET /top?game=duck-v2`
+- `POST /submit`
+
+`POST /submit` receives fields:
+- `game`, `name`, `score`, `mode`, `week`, `proof`, `seed`
+
+Use `proof` + `seed` server-side to validate submissions.

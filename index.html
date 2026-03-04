@@ -17,20 +17,20 @@
   <main class="game-shell">
     <header class="hud" aria-label="Game HUD">
       <div class="hud-item">Score: <span id="score">0</span></div>
-      <div class="hud-item">Best: <span id="highScore">0</span></div>
-      <div class="hud-item">Time: <span id="time">45</span>s</div>
-      <div class="hud-item">Misses: <span id="misses">0</span></div>
+      <div class="hud-item">Best: <span id="best">0</span></div>
+      <div class="hud-item">Time: <span id="time">0</span>s</div>
+      <div class="hud-item">Miss: <span id="misses">0/0</span></div>
       <div class="hud-item">Combo: <span id="combo">x1</span></div>
-      <div class="hud-item">Level: <span id="level">1</span></div>
-      <div class="hud-item">Shields: <span id="shields">0</span></div>
-      <div class="hud-item">Accuracy: <span id="accuracy">0%</span></div>
-      <div class="hud-item">Effects: <span id="effects">None</span></div>
+      <div class="hud-item">Lvl: <span id="level">1</span></div>
+      <div class="hud-item">Coins: <span id="coins">0</span></div>
+      <div class="hud-item">Fx: <span id="effects">None</span></div>
     </header>
 
     <section id="gameArea" class="game-area" aria-label="Duck hunting game area">
       <div id="message" class="message"></div>
       <div id="crosshair" class="crosshair" aria-hidden="true"></div>
       <div id="toast" class="toast" aria-live="polite"></div>
+      <div id="ghostHud" class="ghost-hud" hidden></div>
     </section>
 
     <footer class="controls" aria-label="Game controls">
