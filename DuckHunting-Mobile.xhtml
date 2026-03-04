@@ -1,11 +1,14 @@
-<!DOCTYPE html>
-<html lang="nl">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="nl" xml:lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Duck Hunting</title>
 
-<style>
+<style type="text/css">
 body {
   margin: 0;
   overflow: hidden;
@@ -17,7 +20,7 @@ canvas {
 }
 #overlay {
   position: fixed;
-  inset: 0;
+  top:0; left:0; right:0; bottom:0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -41,7 +44,8 @@ button {
 
 <canvas id="game"></canvas>
 
-<script>
+<script type="text/javascript">
+// <![CDATA[
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -56,20 +60,20 @@ let ducks = [];
 let score = 0;
 let running = false;
 
-class Duck {
-  constructor() {
-    this.x = -50;
-    this.y = Math.random() * canvas.height;
-    this.speed = 3 + Math.random() * 2;
-  }
-  update() {
-    this.x += this.speed;
-  }
-  draw() {
-    ctx.font = "40px Arial";
-    ctx.fillText("🦆", this.x, this.y);
-  }
+function Duck() {
+  this.x = -50;
+  this.y = Math.random() * canvas.height;
+  this.speed = 3 + Math.random() * 2;
 }
+
+Duck.prototype.update = function() {
+  this.x += this.speed;
+};
+
+Duck.prototype.draw = function() {
+  ctx.font = "40px Arial";
+  ctx.fillText("🦆", this.x, this.y);
+};
 
 function spawnDuck() {
   if (Math.random() < 0.02) {
@@ -92,13 +96,15 @@ canvas.addEventListener("pointerdown", function(e) {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  ducks.forEach((duck, i) => {
+  for (let i = 0; i < ducks.length; i++) {
+    let duck = ducks[i];
     if (x > duck.x - 30 && x < duck.x + 30 &&
         y > duck.y - 30 && y < duck.y + 30) {
       ducks.splice(i, 1);
       score++;
+      break;
     }
-  });
+  }
 });
 
 function loop() {
@@ -108,13 +114,15 @@ function loop() {
 
   spawnDuck();
 
-  ducks.forEach((duck, i) => {
+  for (let i = 0; i < ducks.length; i++) {
+    let duck = ducks[i];
     duck.update();
     duck.draw();
     if (duck.x > canvas.width) {
       ducks.splice(i, 1);
+      i--;
     }
-  });
+  }
 
   ctx.fillStyle = "black";
   ctx.font = "20px Arial";
@@ -122,6 +130,7 @@ function loop() {
 
   requestAnimationFrame(loop);
 }
+// ]]>
 </script>
 
 </body>
