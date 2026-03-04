@@ -3,40 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Duck Hunting 🦆</title>
+<title>Duck Hunting</title>
 
 <style>
 body {
-  margin:0;
-  overflow:hidden;
-  background:linear-gradient(#87CEEB,#e0f7ff);
-  font-family:Arial,sans-serif;
+  margin: 0;
+  overflow: hidden;
+  background: #87CEEB;
+  font-family: Arial, sans-serif;
 }
-canvas { display:block; }
-
-#overlay, #gameOver {
-  position:fixed;
-  inset:0;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  background:rgba(0,0,0,0.75);
-  color:white;
-  z-index:10;
-  text-align:center;
+canvas {
+  display: block;
 }
-
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: rgba(0,0,0,0.7);
+  color: white;
+}
 button {
-  padding:15px 30px;
-  font-size:20px;
-  border-radius:12px;
-  border:none;
-  background:#4CAF50;
-  color:white;
+  padding: 15px 25px;
+  font-size: 18px;
 }
-
-#leaderboard { margin-top:20px; }
 </style>
 </head>
 
@@ -44,16 +36,7 @@ button {
 
 <div id="overlay">
   <h1>Duck Hunting 🦆</h1>
-  <p>Schiet eenden, maak combo’s en haal 50 punten!</p>
   <button onclick="startGame()">Start</button>
-  <div id="leaderboard"></div>
-</div>
-
-<div id="gameOver" style="display:none;">
-  <h1>Game Over</h1>
-  <p id="finalScore"></p>
-  <button onclick="restartGame()">Opnieuw</button>
-  <div id="leaderboard"></div>
 </div>
 
 <canvas id="game"></canvas>
@@ -62,207 +45,83 @@ button {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-function resizeCanvas(){
+function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-window.addEventListener("resize",resizeCanvas);
-resizeCanvas();
+window.addEventListener("resize", resize);
+resize();
 
-let gameRunning=false;
-let ducks=[];
-let particles=[];
-let score=0;
-let lives=3;
-let combo=0;
-let comboTimer=0;
-let clockCooldown=0;
-let lastTime=0;
+let ducks = [];
+let score = 0;
+let running = false;
 
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(freq,dur){
-  const osc=audioCtx.createOscillator();
-  const gain=audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.frequency.value=freq;
-  osc.start();
-  gain.gain.setValueAtTime(0.2,audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
-  osc.stop(audioCtx.currentTime+dur);
-}
-
-class Duck{
-  constructor(type="normal"){
-    this.x=-50;
-    this.y=Math.random()*canvas.height;
-    this.type=type;
-    this.speed=2+Math.random()*2+Math.floor(score/10);
+class Duck {
+  constructor() {
+    this.x = -50;
+    this.y = Math.random() * canvas.height;
+    this.speed = 3 + Math.random() * 2;
   }
-  draw(){
-    ctx.font="40px Arial";
-    let emoji="🦆";
-    if(this.type==="clock") emoji="⏰";
-    if(this.type==="green") emoji="🟢";
-    if(this.type==="red") emoji="🔴";
-    if(this.type==="blue") emoji="🔵";
-    if(this.type==="boom") emoji="💣";
-    ctx.fillText(emoji,this.x,this.y);
+  update() {
+    this.x += this.speed;
   }
-  update(delta){
-    this.x+=this.speed*(delta/16);
+  draw() {
+    ctx.font = "40px Arial";
+    ctx.fillText("🦆", this.x, this.y);
   }
 }
 
-function spawnDuck(){
-  let r=Math.random();
-  if(clockCooldown<=0 && r<0.05){
-    ducks.push(new Duck("clock"));
-    clockCooldown=600;
+function spawnDuck() {
+  if (Math.random() < 0.02) {
+    ducks.push(new Duck());
   }
-  else if(r<0.1) ducks.push(new Duck("green"));
-  else if(r<0.15) ducks.push(new Duck("blue"));
-  else if(r<0.2) ducks.push(new Duck("red"));
-  else if(r<0.23) ducks.push(new Duck("boom"));
-  else ducks.push(new Duck());
 }
 
-function handleShot(e){
-  if(!gameRunning) return;
-  beep(500,0.1);
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
+function startGame() {
+  document.getElementById("overlay").style.display = "none";
+  ducks = [];
+  score = 0;
+  running = true;
+  requestAnimationFrame(loop);
+}
 
-  ducks.forEach((duck,i)=>{
-    if(x>duck.x-30 && x<duck.x+30 && y>duck.y-30 && y<duck.y+30){
-      hitDuck(duck,i,x,y);
+canvas.addEventListener("pointerdown", function(e) {
+  if (!running) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  ducks.forEach((duck, i) => {
+    if (x > duck.x - 30 && x < duck.x + 30 &&
+        y > duck.y - 30 && y < duck.y + 30) {
+      ducks.splice(i, 1);
+      score++;
     }
   });
-}
-canvas.addEventListener("pointerdown",handleShot);
+});
 
-function hitDuck(duck,i,x,y){
-  beep(900,0.1);
-  combo++;
-  comboTimer=120;
+function loop() {
+  if (!running) return;
 
-  if(duck.type==="clock") score+=5;
-  else if(duck.type==="green") score+=2;
-  else if(duck.type==="red") score-=3;
-  else if(duck.type==="blue"){}
-  else if(duck.type==="boom"){
-    ducks=[];
-    score+=10;
-  }
-  else score+=1;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  score+=combo;
-  createParticles(x,y);
-  ducks.splice(i,1);
-}
+  spawnDuck();
 
-function createParticles(x,y){
-  for(let i=0;i<10;i++){
-    particles.push({
-      x,y,
-      vx:(Math.random()-0.5)*4,
-      vy:(Math.random()-0.5)*4,
-      life:30
-    });
-  }
-}
-
-function update(delta){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  if(Math.random()<0.02) spawnDuck();
-  if(clockCooldown>0) clockCooldown--;
-
-  ducks.forEach((d,i)=>{
-    d.update(delta);
-    d.draw();
-    if(d.x>canvas.width){
-      ducks.splice(i,1);
-      lives--;
-      if(lives<=0) endGame();
+  ducks.forEach((duck, i) => {
+    duck.update();
+    duck.draw();
+    if (duck.x > canvas.width) {
+      ducks.splice(i, 1);
     }
   });
 
-  particles.forEach((p,i)=>{
-    p.x+=p.vx;
-    p.y+=p.vy;
-    p.life--;
-    ctx.fillStyle="yellow";
-    ctx.fillRect(p.x,p.y,4,4);
-    if(p.life<=0) particles.splice(i,1);
-  });
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 20, 30);
 
-  if(comboTimer>0) comboTimer--;
-  else combo=0;
-
-  ctx.fillStyle="black";
-  ctx.font="20px Arial";
-  ctx.fillText("Score: "+score,20,30);
-  ctx.fillText("Combo x"+combo,20,60);
-  ctx.fillText("❤️ "+lives,canvas.width-100,30);
-
-  if(score>=50) endGame();
+  requestAnimationFrame(loop);
 }
-
-function gameLoop(timestamp){
-  if(!gameRunning) return;
-  const delta=timestamp-lastTime;
-  lastTime=timestamp;
-  update(delta);
-  requestAnimationFrame(gameLoop);
-}
-
-function startGame(){
-  document.documentElement.requestFullscreen?.();
-  audioCtx.resume();
-  score=0;
-  lives=3;
-  combo=0;
-  ducks=[];
-  particles=[];
-  gameRunning=true;
-  document.getElementById("overlay").style.display="none";
-  document.getElementById("gameOver").style.display="none";
-  requestAnimationFrame(gameLoop);
-}
-
-function endGame(){
-  gameRunning=false;
-  let name=prompt("Je naam?");
-  saveScore(name||"Speler",score);
-  document.getElementById("finalScore").innerText="Score: "+score;
-  showLeaderboard();
-  document.getElementById("gameOver").style.display="flex";
-}
-
-function restartGame(){ startGame(); }
-
-function saveScore(name,newScore){
-  let scores=JSON.parse(localStorage.getItem("leaderboard"))||[];
-  scores.push({name,score:newScore});
-  scores.sort((a,b)=>b.score-a.score);
-  scores=scores.slice(0,5);
-  localStorage.setItem("leaderboard",JSON.stringify(scores));
-}
-
-function showLeaderboard(){
-  let scores=JSON.parse(localStorage.getItem("leaderboard"))||[];
-  let html="<h3>Leaderboard</h3><ol>";
-  scores.forEach(s=>{
-    html+="<li>"+s.name+" - "+s.score+"</li>";
-  });
-  html+="</ol>";
-  document.querySelectorAll("#leaderboard")
-    .forEach(el=>el.innerHTML=html);
-}
-
-showLeaderboard();
 </script>
 
 </body>
