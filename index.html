@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Duck Hunting Mobile</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <header class="hud" aria-label="Game HUD">
+      <div class="hud-item">Score: <span id="score">0</span></div>
+      <div class="hud-item">Time: <span id="time">45</span>s</div>
+      <div class="hud-item">Misses: <span id="misses">0</span>/8</div>
+    </header>
+
+    <section id="gameArea" class="game-area" aria-label="Duck hunting game area">
+      <div id="message" class="message">
+        <h1>Duck Hunting</h1>
+        <p>Tap ducks to score points.</p>
+        <p>Miss too many and you lose.</p>
+        <button id="startBtn" type="button">Start Game</button>
+      </div>
+      <div id="crosshair" class="crosshair" aria-hidden="true"></div>
+    </section>
+
+    <footer class="controls" aria-label="Game controls">
+      <button id="pauseBtn" type="button" disabled>Pause</button>
+      <button id="restartBtn" type="button" disabled>Restart</button>
+    </footer>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>

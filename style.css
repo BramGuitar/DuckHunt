@@ -1,0 +1,210 @@
+:root {
+  --sky-top: #7ec8ff;
+  --sky-bottom: #dff5ff;
+  --grass: #6ec766;
+  --text: #0f2533;
+  --hud-bg: rgba(255, 255, 255, 0.88);
+  --accent: #ff7a00;
+  --danger: #ce2a2a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+  color: var(--text);
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+}
+
+body {
+  touch-action: manipulation;
+}
+
+.game-shell {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.75rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) 0.75rem max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.hud-item {
+  background: var(--hud-bg);
+  border: 2px solid #ffffff;
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.game-area {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  border: 3px solid #ffffff;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.7), transparent 35%),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.5), transparent 30%),
+    linear-gradient(180deg, #8cd4ff 0%, #d7f1ff 62%, var(--grass) 62%, #58ad54 100%);
+  min-height: 64vh;
+}
+
+.duck {
+  position: absolute;
+  width: clamp(44px, 11vw, 66px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50% 55% 50% 45%;
+  background: #2d2d2d;
+  border: 2px solid #131313;
+  transform-origin: center;
+  animation: flap 0.18s infinite alternate ease-in-out;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.duck::before {
+  content: "";
+  position: absolute;
+  width: 43%;
+  height: 43%;
+  right: -12%;
+  top: 35%;
+  background: #ff9c32;
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+
+.duck::after {
+  content: "";
+  position: absolute;
+  width: 34%;
+  height: 34%;
+  left: -9%;
+  top: 22%;
+  border-radius: 50%;
+  background: #101010;
+}
+
+.duck.hit {
+  animation: none;
+  opacity: 0;
+  transform: scale(0.6) rotate(20deg);
+  transition: 120ms ease-out;
+}
+
+.message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(2px);
+  z-index: 8;
+}
+
+.message h1,
+.message p {
+  margin: 0;
+}
+
+button {
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.crosshair {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.crosshair::before,
+.crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.crosshair::before {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.crosshair::after {
+  width: 100%;
+  height: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.crosshair.show {
+  animation: ping 240ms ease-out;
+}
+
+@keyframes ping {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@keyframes flap {
+  from {
+    transform: rotate(-2deg) translateY(0);
+  }
+  to {
+    transform: rotate(2deg) translateY(-1px);
+  }
+}
+
+@media (min-width: 700px) {
+  .game-shell {
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .game-area {
+    min-height: 520px;
+  }
+}
